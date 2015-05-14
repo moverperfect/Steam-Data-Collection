@@ -74,6 +74,14 @@ namespace Steam_Data_Collection_Client.Networking.Packets
         }
 
         /// <summary>
+        /// Returns the type of the packet
+        /// </summary>
+        public ushort PacketType
+        {
+            get { return ReadUShort(2); }
+        }
+
+        /// <summary>
         /// Writes a number to the byte array at an offset start point
         /// </summary>
         /// <param name="value">The number to be written</param>

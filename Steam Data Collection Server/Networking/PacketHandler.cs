@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data;
 using System.Net.Sockets;
+using Steam_Data_Collection_Client.Networking.Packets;
 
 namespace Steam_Data_Collection.Networking
 {
@@ -27,7 +28,9 @@ namespace Steam_Data_Collection.Networking
             // Packet types:
             switch (packetType)
             {
-                
+                case 2001:
+                    clientSocket.Send(new StdData("21", 0, 0, 2001).Data);
+                    break;
             }
             clientSocket.Close();
         }

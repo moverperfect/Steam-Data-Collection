@@ -51,9 +51,8 @@ namespace Steam_Data_Collection_Client.Networking
             DataRecieved = null;
 
             // Packet types:
-            // 1001 - Table from select statement
             // 2000 - Standard string 
-            // 2001 - NonQuery
+            // 2001 - Update Host Id
             // 2002 - Select
             // 2003 - Count
             switch (packetType)

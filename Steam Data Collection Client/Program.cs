@@ -2,6 +2,7 @@
 using System.IO;
 using System.Net;
 using System.Threading;
+using Steam_Data_Collection_Client.Networking;
 
 namespace Steam_Data_Collection_Client
 {
@@ -16,7 +17,12 @@ namespace Steam_Data_Collection_Client
         /// The port number for communication
         /// </summary>
         public static int Port;
-        
+
+        /// <summary>
+        /// The host id of the machine, assigned by the server
+        /// </summary>
+        public static ushort HostId = 0;
+
         /// <summary>
         /// Entry point into the program
         /// </summary>
@@ -85,6 +91,7 @@ namespace Steam_Data_Collection_Client
                 switch (option)
                 {
                     case "1":
+                        Updater.UpdateAll();
                         break;
                         
                     case "2":
