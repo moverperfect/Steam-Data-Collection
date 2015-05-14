@@ -1,17 +1,18 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
 using MySql.Data.MySqlClient;
 
 namespace Steam_Data_Collection
 {
-    class SqlConnecter
+    /// <summary>
+    /// Connects the program to a MySql database
+    /// </summary>
+    internal class SqlConnecter
     {
+        /// <summary>
+        /// The main connection object
+        /// </summary>
         private MySqlConnection _connection;
-        private String _server;
-        private String _database;
-        private String _uid;
-        private String _password;
 
         /// <summary>
         /// Create a database connector object with the default options for server name, user id and password
@@ -19,7 +20,7 @@ namespace Steam_Data_Collection
         /// <param name="db">The database name</param>
         public SqlConnecter(String db)
         {
-            Initialize(db, "localhost","root","");
+            Initialize(db, "localhost", "root", "");
         }
 
         /// <summary>
@@ -34,10 +35,13 @@ namespace Steam_Data_Collection
             Initialize(db, server, uid, password);
         }
 
-
-        private void Initialize(String _database, String _Server, String _uid, String _password)
+        /// <summary>
+        /// Initializes the SQL connection object
+        /// </summary>
+        private void Initialize(String database, String server, String uid, String password)
         {
-            string connectionString = "SERVER=" + _server + ";DATABASE=" + _database + ";UID=" + _uid + ";PASSWORD=" + _password + ";";
+            var connectionString = "SERVER=" + server + ";DATABASE=" + database + ";UID=" + uid + ";PASSWORD=" +
+                                   password + ";Allow User Variables=true";
 
             _connection = new MySqlConnection(connectionString);
         }
@@ -49,7 +53,14 @@ namespace Steam_Data_Collection
         public bool TestConnection()
         {
             var open = OpenConnection();
-            CloseConnection();
+            try
+            {
+                CloseConnection();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
             return open;
         }
 
@@ -80,7 +91,10 @@ namespace Steam_Data_Collection
             }
         }
 
-
+        /// <summary>
+        /// Closes the connection to the server, true if successful
+        /// </summary>
+        /// <returns>If successful</returns>
         private bool CloseConnection()
         {
             try
@@ -95,70 +109,90 @@ namespace Steam_Data_Collection
             }
         }
 
+        /// <summary>
+        /// Execute a NonQuery to the server
+        /// </summary>
+        /// <param name="query">The query to be sent</param>
         public void NonQuery(String query)
         {
-            if (this.OpenConnection() == true)
+            if (OpenConnection())
             {
-                MySqlCommand cmd = new MySqlCommand(query, _connection);
+                var cmd = new MySqlCommand(query, _connection);
 
                 cmd.ExecuteNonQuery();
 
-                this.CloseConnection();
-            }
-        }
-
-        public DataTable Select(String query)
-        {
-            var dt = new DataTable();
-
-            if (this.OpenConnection() == true)
-            {
-                MySqlCommand cmd = new MySqlCommand(query, _connection);
-
-                MySqlDataReader dr = cmd.ExecuteReader();
-
-                var schemaTable = dr.GetSchemaTable();
-                foreach (DataRowView row in schemaTable.DefaultView)
-                {
-                    var columnName = (string)row["ColumnName"];
-                    var type = (Type)row["DataType"];
-                    dt.Columns.Add(columnName, type);
-                }
-
-
-                dt.Load(dr);
-
-                dr.Close();
-
                 CloseConnection();
-
-                return dt;
-
-            }
-            else
-            {
-                return dt;
             }
         }
 
+        /// <summary>
+        /// Execute a Select statement to the sql server
+        /// </summary>
+        /// <param name="query">The select statement</param>
+        /// <returns>The datatable containing the data</returns>
+        public Object Select(String query)
+        {
+            try
+            {
+                var dt = new DataTable();
+
+                if (OpenConnection())
+                {
+                    var cmd = new MySqlCommand(query, _connection);
+
+                    var dr = cmd.ExecuteReader();
+
+                    var schemaTable = dr.GetSchemaTable();
+                    foreach (DataRowView row in schemaTable.DefaultView)
+                    {
+                        var columnName = (string) row["ColumnName"];
+                        var type = (Type) row["DataType"];
+                        dt.Columns.Add(columnName, type);
+                    }
+
+
+                    dt.Load(dr);
+
+                    dr.Close();
+
+                    return dt;
+                }
+                const string error =
+                    "ERROR: Connection to database could not be established, please contact an administrator!";
+                return error;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(query);
+                Console.WriteLine(e.Message);
+            }
+            finally
+            {
+                CloseConnection();
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Executes a count query
+        /// </summary>
+        /// <param name="query">The SQL query</param>
+        /// <returns>The counted amount</returns>
         public int Count(String query)
         {
-            int count = 0;
+            var count = 0;
 
-            if (this.OpenConnection() == true)
+            if (OpenConnection())
             {
-                MySqlCommand cmd = new MySqlCommand(query, _connection);
+                var cmd = new MySqlCommand(query, _connection);
 
                 count = int.Parse(cmd.ExecuteScalar().ToString());
 
-                this.CloseConnection();
+                CloseConnection();
 
                 return count;
             }
-            else
-            {
-                return count;
-            }
+            return count;
         }
     }
 }
