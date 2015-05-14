@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Steam_Data_Collection_Client
+namespace Steam_Data_Collection_Client.Objects
 {
     internal class Friend
     {
