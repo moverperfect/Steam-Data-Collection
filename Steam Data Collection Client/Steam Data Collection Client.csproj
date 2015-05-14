@@ -43,13 +43,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Networking\CustomSocket.cs" />
-    <Compile Include="Friend.cs" />
-    <Compile Include="GameHistory.cs" />
-    <Compile Include="Group.cs" />
+    <Compile Include="Objects\Friend.cs" />
+    <Compile Include="Objects\GameHistory.cs" />
+    <Compile Include="Objects\Group.cs" />
     <Compile Include="Networking\PacketHandler.cs" />
     <Compile Include="Networking\Packets\PacketStructure.cs" />
     <Compile Include="Networking\Packets\StdData.cs" />
-    <Compile Include="Person.cs" />
+    <Compile Include="Objects\Person.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
