@@ -1,11 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace Steam_Data_Collection
+﻿namespace Steam_Data_Collection_Client
 {
-    class GameHistory
+    internal class GameHistory
     {
+        #region Define Accessor Variables
+
+        /// <summary>
+        /// The ID number of the app
+        /// </summary>
+        public int AppId { get; set; }
+
+        /// <summary>
+        /// The number
+        /// </summary>
+        public int Last2Weeks { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public int OnRecord { get; set; }
+
+        #endregion
     }
 }
