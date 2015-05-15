@@ -43,6 +43,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Networking\CustomSocket.cs" />
+    <Compile Include="Networking\Packets\ListOfId.cs" />
     <Compile Include="Objects\Friend.cs" />
     <Compile Include="Objects\GameHistory.cs" />
     <Compile Include="Objects\Group.cs" />

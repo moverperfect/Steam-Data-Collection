@@ -53,7 +53,7 @@ namespace Steam_Data_Collection_Client.Networking
             // Packet types:
             // 2000 - Standard string 
             // 2001 - Update Host Id
-            // 2002 - Select
+            // 2002 - List of steam ids to check
             // 2003 - Count
             switch (packetType)
             {

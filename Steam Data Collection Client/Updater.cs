@@ -28,7 +28,6 @@ namespace Steam_Data_Collection_Client
                 Thread.Sleep(1000);
                 Console.Clear();
                 Console.WriteLine("Server IP: " + Program.IpAddress.ToString() + "      Port: " + Program.Port.ToString() + "       HostId: " + Program.HostId);
-                Console.ReadLine();
                 UpdatePlayerSum();
             }
         }
@@ -40,7 +39,19 @@ namespace Steam_Data_Collection_Client
 
         static void UpdatePlayerSum()
         {
-            
+            if (Program.HostId == 0)
+            {
+                Console.Clear();
+                UpdateHostId();
+                Thread.Sleep(1000);
+            }
+            Console.Clear();
+            Console.WriteLine("Server IP: " + Program.IpAddress.ToString() + "      Port: " + Program.Port.ToString() + "       HostId: " + Program.HostId);
+            Console.WriteLine();
+            Console.WriteLine("Getting the steam ids we need to check from the server");
+            var listOfIds = new ListOfId(CustomSocket.StartClient(new StdData("", Program.HostId, 0, 2002).Data));
+            Console.WriteLine("List received of length " + listOfIds.List.Count);
+            Console.ReadLine();
         }
 
         static void UpdatePlayerFriend()

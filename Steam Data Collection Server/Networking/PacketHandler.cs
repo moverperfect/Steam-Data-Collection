@@ -31,6 +31,10 @@ namespace Steam_Data_Collection.Networking
                 case 2001:
                     clientSocket.Send(new StdData("21", 0, 0, 2001).Data);
                     break;
+
+                case 2002:
+                    DataDealer.UpdateSum(clientSocket);
+                    break;
             }
             clientSocket.Close();
         }

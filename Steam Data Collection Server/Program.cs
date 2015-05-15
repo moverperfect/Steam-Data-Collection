@@ -11,6 +11,8 @@ namespace Steam_Data_Collection
     {
         private static ServerSocket Socket = new ServerSocket();
 
+        public static SqlConnecter SqlDb = new SqlConnecter("db_steamdata");
+
         static void Main(string[] args)
         {
             Socket.Bind(8220);
