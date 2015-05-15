@@ -21,11 +21,11 @@ namespace Steam_Data_Collection_Client.Networking.Packets
         /// <param name="tmpList">The list to be stored in the byte array</param>
         /// <param name="machineId">The machine id of the machine that created the packet</param>
         /// <param name="userId">The user id of the user who created the packet</param>
-        public ListOfId(List<UInt64> tmpList, ushort machineId, ushort userId)
+        public ListOfId(List<UInt64> tmpList, ushort machineId, ushort userId, ushort packetType)
         {
             List = tmpList;
             ListToByteArray(tmpList);
-            WriteUShort(1001, 2);
+            WriteUShort(packetType, 2);
             WriteUShort(machineId, 4);
             WriteUShort(userId, 6);
         }

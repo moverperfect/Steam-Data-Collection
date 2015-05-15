@@ -25,7 +25,7 @@ namespace Steam_Data_Collection
                 listOfIds.Add((UInt64)dt.Rows[i][0]);
             }
 
-            var packet = new ListOfId(listOfIds, 0, 0);
+            var packet = new ListOfId(listOfIds, 0, 0, 2002);
             socket.Send(packet.Data);
         }
     }
