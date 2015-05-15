@@ -10,7 +10,7 @@ namespace Steam_Data_Collection_Client.Objects
         /// <summary>
         /// The 64 bit id that identifies the user
         /// </summary>
-        public Int64 SteamId { get; set; }
+        public UInt64 SteamId { get; set; }
 
         /// <summary>
         /// User Name of the user
@@ -45,7 +45,7 @@ namespace Steam_Data_Collection_Client.Objects
         /// <summary>
         /// Their primary clan ID
         /// </summary>
-        public Int64 PrimaryClanId { get; set; }
+        public UInt64 PrimaryClanId { get; set; }
 
         /// <summary>
         /// The last time that the user logged off their account

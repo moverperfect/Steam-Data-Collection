@@ -9,7 +9,7 @@ namespace Steam_Data_Collection_Client.Objects
         /// <summary>
         /// The steam id of the friend
         /// </summary>
-        public Int64 SteamId { get; set; }
+        public UInt64 SteamId { get; set; }
 
         /// <summary>
         /// The timestamp of the time that the users became friends
@@ -23,7 +23,7 @@ namespace Steam_Data_Collection_Client.Objects
         /// </summary>
         /// <param name="steamid">The steam id of the friend</param>
         /// <param name="timeStamp">The timestamp that they became friends</param>
-        public Friend(Int64 steamid, DateTime timeStamp)
+        public Friend(UInt64 steamid, DateTime timeStamp)
         {
             SteamId = steamid;
             TimeStamp = timeStamp;

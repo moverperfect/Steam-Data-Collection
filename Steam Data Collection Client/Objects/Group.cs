@@ -9,7 +9,7 @@ namespace Steam_Data_Collection_Client.Objects
         /// <summary>
         /// The id of the group
         /// </summary>
-        public Int64 GroupId { get; set; }
+        public UInt64 GroupId { get; set; }
 
         /// <summary>
         /// The name of the group

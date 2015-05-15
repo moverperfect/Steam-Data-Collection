@@ -7,6 +7,9 @@ namespace Steam_Data_Collection_Client
 {
     static class Updater
     {
+        /// <summary>
+        /// Asks the server for a new host id
+        /// </summary>
         static void UpdateHostId()
         {
             var msg = new StdData("", Program.HostId, 0, 2001);
@@ -19,6 +22,9 @@ namespace Steam_Data_Collection_Client
             Console.WriteLine("New host id has been assigned: " + Program.HostId);
         }
 
+        /// <summary>
+        /// Will cycle through all of the functions, updating what is needed
+        /// </summary>
         public static void UpdateAll()
         {
             while (true)
@@ -37,6 +43,9 @@ namespace Steam_Data_Collection_Client
             
         }
 
+        /// <summary>
+        /// Get the steam ids from the server then check their summaries
+        /// </summary>
         static void UpdatePlayerSum()
         {
             if (Program.HostId == 0)
