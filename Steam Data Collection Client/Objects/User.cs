@@ -50,7 +50,7 @@ namespace Steam_Data_Collection_Client.Objects
         /// <summary>
         /// The last time that the user logged off their account
         /// </summary>
-        public DateTime LastLogOFf { get; set; }
+        public DateTime LastLogOff { get; set; }
 
 
         /// <summary>

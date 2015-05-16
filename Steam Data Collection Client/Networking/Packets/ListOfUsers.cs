@@ -1,28 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
-using System.Text;
-using System.Threading.Tasks;
+using Steam_Data_Collection_Client.Objects;
 
 namespace Steam_Data_Collection_Client.Networking.Packets
 {
-    public class ListOfId : PacketStructure
+    class ListOfUsers : PacketStructure
     {
         /// <summary>
-        /// The List data
+        /// The list data
         /// </summary>
-        private List<UInt64> _list;
+        private List<User> _list;
 
         /// <summary>
-        /// Create a new List with a List
+        /// Create a new list with a list
         /// </summary>
-        /// <param name="tmpList">The list to be stored in the byte array</param>
-        /// <param name="machineId">The machine id of the machine that created the packet</param>
-        /// <param name="userId">The user id of the user who created the packet</param>
+        /// <param name="tmpList">The list to be stored</param>
+        /// <param name="machineId">The machine id of the host machine</param>
+        /// <param name="userId">The user id of the user, unused</param>
         /// <param name="packetType">The type of packet that this is</param>
-        public ListOfId(List<UInt64> tmpList, ushort machineId, ushort userId, ushort packetType)
+        public ListOfUsers(List<User> tmpList, ushort machineId, ushort userId, ushort packetType)
         {
             List = tmpList;
             ListToByteArray(tmpList);
@@ -32,10 +30,10 @@ namespace Steam_Data_Collection_Client.Networking.Packets
         }
 
         /// <summary>
-        /// Create a new List with byte array already
+        /// Create a new list with a byte array already
         /// </summary>
-        /// <param name="bytes">The byte array to be made with</param>
-        public ListOfId(Byte[] bytes)
+        /// <param name="bytes">Thw byte array to be made into a list</param>
+        public ListOfUsers(Byte[] bytes)
             : base(bytes)
         {
             var tempBytes = new Byte[bytes.Length - 8];
@@ -46,15 +44,15 @@ namespace Steam_Data_Collection_Client.Networking.Packets
         /// <summary>
         /// Create a empty List packet
         /// </summary>
-        public ListOfId()
+        public ListOfUsers()
         {
-            _list = new List<UInt64>();
+            List = new List<User>();
         }
 
         /// <summary>
         /// The List
         /// </summary>
-        public List<UInt64> List
+        public List<User> List
         {
             get { return _list; }
             private set
@@ -68,7 +66,7 @@ namespace Steam_Data_Collection_Client.Networking.Packets
         /// Turns a List into a byte array
         /// </summary>
         /// <param name="tmpList"></param>
-        public void ListToByteArray(List<UInt64> tmpList)
+        public void ListToByteArray(List<User> tmpList)
         {
             byte[] binaryDataResult;
             // Serializing the List using a binaryformmatter to memorystream to byte array
@@ -80,7 +78,7 @@ namespace Steam_Data_Collection_Client.Networking.Packets
             }
             // Add the length metadata to the byte array
             Buffer = new Byte[binaryDataResult.Length + 8];
-            WriteUShort((ushort) Buffer.Length, 0);
+            WriteUShort((ushort)Buffer.Length, 0);
             Array.Copy(binaryDataResult, 0, Buffer, 8, binaryDataResult.Length);
         }
 
@@ -91,12 +89,12 @@ namespace Steam_Data_Collection_Client.Networking.Packets
         public void ByteArrayToList(Byte[] arrayBytes)
         {
             Buffer = arrayBytes;
-            List<UInt64> list;
+            List<User> list;
             // Deserializing into list using a memory stream to binaryformmatter deserialiser to datatable
             using (var stream = new MemoryStream(arrayBytes))
             {
                 var bformatter = new BinaryFormatter();
-                list = (List<UInt64>) bformatter.Deserialize(stream);
+                list = (List<User>)bformatter.Deserialize(stream);
             }
             // Adding list into list object    
             _list = list;
