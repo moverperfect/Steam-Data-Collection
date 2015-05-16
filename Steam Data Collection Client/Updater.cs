@@ -43,10 +43,11 @@ namespace Steam_Data_Collection_Client
         /// </summary>
         public static void UpdateAll()
         {
+            UpdateHostId();
+            UpdateSteamToken();
             while (true)
             {
                 Console.Clear();
-                UpdateHostId();
                 Thread.Sleep(1000);
                 Console.Clear();
                 Console.WriteLine("Server IP: " + Program.IpAddress.ToString() + "      Port: " + Program.Port.ToString() + "       HostId: " + Program.HostId);
@@ -92,7 +93,7 @@ namespace Steam_Data_Collection_Client
 
             Console.WriteLine("List received of length " + listOfIds.Count);
             var uri =
-                "http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=A71B812D2AF658D0A290CB1FC3E50673&steamids=" + listOfIds[0];
+                "http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=" + Program.SteamToken + "&steamids=" + listOfIds[0];
             for (int i = 1; i < listOfIds.Count; i++)
             {
                 uri += "," + listOfIds[i];

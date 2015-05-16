@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -27,11 +28,16 @@ namespace Steam_Data_Collection
         public static String SteamToken;
 
         /// <summary>
+        /// Stores the update interval to update statistics about users
+        /// </summary>
+        public static String UpdateInterval;
+
+        /// <summary>
         /// Main entry point into the program, gets the token and starts listening
         /// </summary>
         static void Main(string[] args)
         {
-            SteamToken = "XX";
+            UpdateSettings();
 
             Socket.Bind(8220);
             Socket.Listen(500);
@@ -42,6 +48,29 @@ namespace Steam_Data_Collection
                 Console.WriteLine("Listening..");
                 Console.ReadLine();
             }
+        }
+
+        /// <summary>
+        /// Updated the server settings
+        /// </summary>
+        static void UpdateSettings()
+        {
+            if (!File.Exists("settings.txt"))
+            {
+                Console.WriteLine("Please enter your steam token");
+                SteamToken = Console.ReadLine();
+
+                Console.WriteLine("Please enter the time interval you would like to update i.e 2 weeks");
+                UpdateInterval = Console.ReadLine();
+
+                File.WriteAllLines("settings.txt", new[] {SteamToken, UpdateInterval});
+                return;
+            }
+
+            var settings = File.ReadAllLines("settings.txt");
+
+            SteamToken = settings[0];
+            UpdateInterval = settings[1];
         }
 
     }

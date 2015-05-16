@@ -56,7 +56,7 @@ namespace Steam_Data_Collection
         /// </summary>
         public static ListOfId UpdateSum(bool mark, int hostId)
         {
-            var dt = (DataTable)Program.SqlDb.Select("SELECT PK_SteamId FROM tbl_user WHERE LastSummaryUpdate < NOW() - Interval 1 week  OR LastSummaryUpdate is Null ORDER BY LastSummaryUpdate;");
+            var dt = (DataTable)Program.SqlDb.Select("SELECT PK_SteamId FROM tbl_user WHERE LastSummaryUpdate < NOW() - Interval " + Program.UpdateInterval + "  OR LastSummaryUpdate is Null ORDER BY LastSummaryUpdate;");
             var listOfIds = new List<UInt64>();
 
             for (int i = 0; i < dt.Rows.Count; i++)

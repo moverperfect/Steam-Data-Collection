@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -44,6 +45,9 @@ namespace Steam_Data_Collection_Client.Networking
                     // Release the socket.
                     sender.Shutdown(SocketShutdown.Both);
                     sender.Close();
+
+                    Array.Resize(ref bytes, bytesRec);
+
                     return bytes;
                 }
                 catch (ArgumentNullException ane)
