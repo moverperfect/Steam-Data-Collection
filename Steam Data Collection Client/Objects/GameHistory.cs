@@ -1,6 +1,9 @@
-﻿namespace Steam_Data_Collection_Client.Objects
+﻿using System;
+
+namespace Steam_Data_Collection_Client.Objects
 {
-    internal class GameHistory
+    [Serializable]
+    public class GameHistory
     {
         #region Define Accessor Variables
 

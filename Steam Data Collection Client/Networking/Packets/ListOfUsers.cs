@@ -6,7 +6,7 @@ using Steam_Data_Collection_Client.Objects;
 
 namespace Steam_Data_Collection_Client.Networking.Packets
 {
-    class ListOfUsers : PacketStructure
+    public class ListOfUsers : PacketStructure
     {
         /// <summary>
         /// The list data

@@ -3,7 +3,8 @@ using System.Collections.Generic;
 
 namespace Steam_Data_Collection_Client.Objects
 {
-    internal class User
+    [Serializable]
+    public class User
     {
         #region Define Accessor Variables
 

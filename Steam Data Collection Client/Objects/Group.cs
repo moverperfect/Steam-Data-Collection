@@ -2,7 +2,8 @@
 
 namespace Steam_Data_Collection_Client.Objects
 {
-    internal class Group
+    [Serializable]
+    public class Group
     {
         #region Define Accessor Variables
 

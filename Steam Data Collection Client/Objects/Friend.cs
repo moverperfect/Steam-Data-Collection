@@ -2,7 +2,8 @@
 
 namespace Steam_Data_Collection_Client.Objects
 {
-    internal class Friend
+    [Serializable]
+    public class Friend
     {
         #region Define Accessor Variables
 
