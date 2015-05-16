@@ -26,14 +26,27 @@ namespace Steam_Data_Collection.Networking
             SqlConnecter connecter;
 
             // Packet types:
+            // 2000 - Update the steam token
+            // 2001 - Update the host id
+            // 2002 Update all the things
+            // 2003 Update the summary
+            // 
             switch (packetType)
             {
+                case 2000:
+                    clientSocket.Send(new StdData(Program.SteamToken, 0, 0, 2000).Data);
+                    break;
+
                 case 2001:
                     clientSocket.Send(new StdData("21", 0, 0, 2001).Data);
                     break;
 
                 case 2002:
-                    DataDealer.UpdateSum(clientSocket);
+                    clientSocket.Send(DataDealer.UpdateAll(new StdData(packet).MachineId));
+                    break;
+
+                case 2003:
+                    clientSocket.Send(DataDealer.UpdateSum(true, new StdData(packet).MachineId).Data);
                     break;
             }
             clientSocket.Close();

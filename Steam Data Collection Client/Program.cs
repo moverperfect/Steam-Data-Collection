@@ -24,6 +24,11 @@ namespace Steam_Data_Collection_Client
         public static ushort HostId = 0;
 
         /// <summary>
+        /// The token used to communicate with steam
+        /// </summary>
+        public static String SteamToken;
+
+        /// <summary>
         /// Entry point into the program
         /// </summary>
         static void Main(string[] args)
@@ -95,6 +100,14 @@ namespace Steam_Data_Collection_Client
                         break;
                         
                     case "2":
+                        while (Console.KeyAvailable == false)
+                        {
+                            if (Updater.UpdatePlayerSum(null) == false)
+                            {
+                                Console.WriteLine("There are no users to update trying again in 5 mins");
+                                Thread.Sleep(1000*60*5);
+                            }
+                        }
                         break;
 
                     case "3":

@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
+using System.Xml;
 using Steam_Data_Collection_Client.Networking;
 using Steam_Data_Collection_Client.Networking.Packets;
+using Steam_Data_Collection_Client.Objects;
 
 namespace Steam_Data_Collection_Client
 {
@@ -23,6 +26,19 @@ namespace Steam_Data_Collection_Client
         }
 
         /// <summary>
+        /// Update the steam token of the program used to communicate with steam
+        /// </summary>
+        public static void UpdateSteamToken()
+        {
+            var msg = new StdData("", Program.HostId, 0, 2000);
+            var rec = new StdData(CustomSocket.StartClient(msg.Data));
+            if (rec.PacketType == 2000)
+            {
+                Program.SteamToken = rec.Text;
+            }
+        }
+
+        /// <summary>
         /// Will cycle through all of the functions, updating what is needed
         /// </summary>
         public static void UpdateAll()
@@ -34,7 +50,8 @@ namespace Steam_Data_Collection_Client
                 Thread.Sleep(1000);
                 Console.Clear();
                 Console.WriteLine("Server IP: " + Program.IpAddress.ToString() + "      Port: " + Program.Port.ToString() + "       HostId: " + Program.HostId);
-                UpdatePlayerSum();
+                var packet = CustomSocket.StartClient(new StdData("", Program.HostId, 0, 2002).Data);
+                UpdatePlayerSum(new ListOfId(packet).List);
             }
         }
 
@@ -46,7 +63,7 @@ namespace Steam_Data_Collection_Client
         /// <summary>
         /// Get the steam ids from the server then check their summaries
         /// </summary>
-        static void UpdatePlayerSum()
+        public static bool UpdatePlayerSum(List<ulong> listOfIds)
         {
             if (Program.HostId == 0)
             {
@@ -54,13 +71,53 @@ namespace Steam_Data_Collection_Client
                 UpdateHostId();
                 Thread.Sleep(1000);
             }
+
             Console.Clear();
             Console.WriteLine("Server IP: " + Program.IpAddress.ToString() + "      Port: " + Program.Port.ToString() + "       HostId: " + Program.HostId);
             Console.WriteLine();
-            Console.WriteLine("Getting the steam ids we need to check from the server");
-            var listOfIds = new ListOfId(CustomSocket.StartClient(new StdData("", Program.HostId, 0, 2002).Data));
-            Console.WriteLine("List received of length " + listOfIds.List.Count);
+
+            // If we have not been given any ids then get some from the server
+            if (listOfIds == null)
+            {
+                Console.WriteLine("Getting the steam ids we need to check from the server");
+                listOfIds = new ListOfId(CustomSocket.StartClient(new StdData("", Program.HostId, 0, 2003).Data)).List;
+            }
+
+            // Exit if we have no id's
+            if (listOfIds.Count == 0)
+            {
+                Console.WriteLine("No summaries to update");
+                return false;
+            }
+
+            Console.WriteLine("List received of length " + listOfIds.Count);
+            var uri =
+                "http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=A71B812D2AF658D0A290CB1FC3E50673&steamids=" + listOfIds[0];
+            for (int i = 1; i < listOfIds.Count; i++)
+            {
+                uri += "," + listOfIds[i];
+            }
+            uri += "&format=xml";
+            var s = new XmlReaderSettings {DtdProcessing = DtdProcessing.Ignore};
+            var r = XmlReader.Create(uri,s);
+            var people = new List<User>();
+            while (r.Read())
+            {
+                switch (r.NodeType)
+                {
+                        case XmlNodeType.Element:
+                        switch (r.Name)
+                        {
+                            case "player":
+                                r.Read();
+                                people.Add(new User());
+                                break;
+                        }
+                        break;
+                }
+            }
             Console.ReadLine();
+            return true;
         }
 
         static void UpdatePlayerFriend()
