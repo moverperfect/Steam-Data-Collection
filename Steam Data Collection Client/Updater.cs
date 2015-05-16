@@ -73,6 +73,11 @@ namespace Steam_Data_Collection_Client
                 Thread.Sleep(1000);
             }
 
+            if (Program.SteamToken == null)
+            {
+                UpdateSteamToken();
+            }
+
             Console.Clear();
             Console.WriteLine("Server IP: " + Program.IpAddress.ToString() + "      Port: " + Program.Port.ToString() + "       HostId: " + Program.HostId);
             Console.WriteLine();
@@ -112,11 +117,68 @@ namespace Steam_Data_Collection_Client
                             case "player":
                                 r.Read();
                                 people.Add(new User());
+                                people[people.Count - 1].LastSummaryUpdate = DateTime.Now;
+                                break;
+
+                            case "steamid":
+                                r.Read();
+                                people[people.Count - 1].SteamId = UInt64.Parse(r.Value);
+                                break;
+
+                            case "communityvisibilitystate":
+                                r.Read();
+                                var v = r.Value == "3";
+                                people[people.Count - 1].VisibilityState = v;
+                                break;
+
+                            case "personaname":
+                                r.Read();
+                                people[people.Count - 1].UserName = r.Value;
+                                break;
+
+                            case "lastlogoff":
+                                r.Read();
+                                people[people.Count - 1].LastLogOff = new DateTime(1970, 1, 1).AddSeconds(double.Parse(r.Value));
+                                break;
+
+                            case "profileurl":
+                                r.Read();
+                                if (r.Value.Split('/')[3] == "id")
+                                {
+                                    people[people.Count - 1].CustomUrl = r.Value.Split('/')[4];
+                                }
+                                else
+                                {
+                                    people[people.Count - 1].CustomUrl = "/";
+                                }
+                                break;
+
+                            case "realname":
+                                r.Read();
+                                people[people.Count - 1].RealName = r.Value;
+                                break;
+
+                            case "primaryclanid":
+                                r.Read();
+                                people[people.Count - 1].PrimaryClanId = UInt64.Parse(r.Value);
+                                break;
+
+                            case "timecreated":
+                                r.Read();
+                                people[people.Count - 1].MemberSince = new DateTime(1970, 1, 1).AddSeconds(double.Parse(r.Value));
+                                break;
+
+                            case "loccountrycode":
+                                r.Read();
+                                people[people.Count - 1].Location = r.Value;
                                 break;
                         }
                         break;
                 }
             }
+
+            CustomSocket.StartClient(new ListOfUsers(people, Program.HostId, 0, 3003).Data);
+
             Console.ReadLine();
             return true;
         }

@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Net.Sockets;
 using Steam_Data_Collection_Client.Networking.Packets;
+using Steam_Data_Collection_Client.Objects;
 
 namespace Steam_Data_Collection.Networking
 {
@@ -28,9 +30,9 @@ namespace Steam_Data_Collection.Networking
             // Packet types:
             // 2000 - Update the steam token
             // 2001 - Update the host id
-            // 2002 Update all the things
-            // 2003 Update the summary
-            // 
+            // 2002 - Request to Update all the things
+            // 2003 - Request to Update the summary
+            // 3003 - Information to update the summary to the server
             switch (packetType)
             {
                 case 2000:
@@ -47,6 +49,11 @@ namespace Steam_Data_Collection.Networking
 
                 case 2003:
                     clientSocket.Send(DataDealer.UpdateSum(true, new StdData(packet).MachineId).Data);
+                    break;
+
+                case 3003:
+                    var list = new ListOfUsers(packet);
+                    
                     break;
             }
             clientSocket.Close();
