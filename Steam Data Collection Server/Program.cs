@@ -11,12 +11,24 @@ namespace Steam_Data_Collection
 {
     class Program
     {
+        /// <summary>
+        /// Socket used to communicate with the clients
+        /// </summary>
         private static ServerSocket Socket = new ServerSocket();
 
+        /// <summary>
+        /// Sql connecter used to connect to mysql
+        /// </summary>
         public static SqlConnecter SqlDb = new SqlConnecter("db_steamdata");
 
+        /// <summary>
+        /// Steam token used to connect with steam
+        /// </summary>
         public static String SteamToken;
 
+        /// <summary>
+        /// Main entry point into the program, gets the token and starts listening
+        /// </summary>
         static void Main(string[] args)
         {
             SteamToken = "XX";
@@ -28,14 +40,9 @@ namespace Steam_Data_Collection
             {
                 Console.Clear();
                 Console.WriteLine("Listening..");
-                Thread.Sleep(10000);
+                Console.ReadLine();
             }
         }
 
-        static int NoSumUpdate()
-        {
-            var dt = (DataTable)Program.SqlDb.Select("SELECT PK_SteamId FROM tbl_user WHERE LastSummaryUpdate < NOW() - Interval 1 week  OR LastSummaryUpdate is Null ORDER BY LastSummaryUpdate;");
-            return dt.Rows.Count;
-        }
     }
 }
