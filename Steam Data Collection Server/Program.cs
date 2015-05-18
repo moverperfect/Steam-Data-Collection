@@ -60,7 +60,7 @@ namespace Steam_Data_Collection
                 Console.WriteLine("Please enter your steam token");
                 SteamToken = Console.ReadLine();
 
-                Console.WriteLine("Please enter the time interval you would like to update i.e 2 weeks");
+                Console.WriteLine("Please enter the time interval you would like to update i.e 2 week");
                 UpdateInterval = Console.ReadLine();
 
                 File.WriteAllLines("settings.txt", new[] {SteamToken, UpdateInterval});
