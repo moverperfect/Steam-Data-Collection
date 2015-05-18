@@ -83,13 +83,11 @@ namespace Steam_Data_Collection_Client
                 Console.WriteLine();
                 Console.WriteLine("You are a slave, do you care what you do?");
                 Console.WriteLine("1. No, just update \"Stuff\"");
-                Console.WriteLine("2. Discover new users");
-                Console.WriteLine("3. Update player summaries");
-                Console.WriteLine("4. Update player friend's");
-                Console.WriteLine("5. Update player games");
-                Console.WriteLine("6. Update player groups");
-                Console.WriteLine("7. Update group's");
-                Console.WriteLine("8. Exit");
+                Console.WriteLine("2. Update player summaries");
+                Console.WriteLine("3. Update player games");
+                Console.WriteLine("4. Update player groups");
+                Console.WriteLine("5. Update group's");
+                Console.WriteLine("6. Exit");
 
                 var option = Console.ReadLine();
 
@@ -98,14 +96,23 @@ namespace Steam_Data_Collection_Client
                     case "1":
                         Updater.UpdateAll();
                         break;
-                        
+
                     case "2":
+                        while (Console.KeyAvailable == false)
+                        {
+                            if (Updater.UpdatePlayerSum(null) == false)
+                            {
+                                Console.WriteLine("There are no users to update trying again in 5 mins");
+                                Thread.Sleep(1000 * 60 * 5 - 500);
+                            }
+                            Thread.Sleep(500);
+                        }
                         break;
 
                     case "3":
                         while (Console.KeyAvailable == false)
                         {
-                            if (Updater.UpdatePlayerSum(null) == false)
+                            if (Updater.UpdatePlayerFriend(null) == false)
                             {
                                 Console.WriteLine("There are no users to update trying again in 5 mins");
                                 Thread.Sleep(1000 * 60 * 5 - 500);
@@ -124,13 +131,7 @@ namespace Steam_Data_Collection_Client
                         break;
 
                     case "7":
-                        break;
-
-                    case "8":
                         return;
-
-                    case "9":
-                        break;
                 }
             }
         }
