@@ -100,18 +100,18 @@ namespace Steam_Data_Collection_Client
                         break;
                         
                     case "2":
+                        break;
+
+                    case "3":
                         while (Console.KeyAvailable == false)
                         {
                             if (Updater.UpdatePlayerSum(null) == false)
                             {
                                 Console.WriteLine("There are no users to update trying again in 5 mins");
-                                Thread.Sleep(1000*60*5);
+                                Thread.Sleep(1000 * 60 * 5 - 500);
                             }
                             Thread.Sleep(500);
                         }
-                        break;
-
-                    case "3":
                         break;
 
                     case "4":

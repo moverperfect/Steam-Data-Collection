@@ -76,7 +76,7 @@ namespace Steam_Data_Collection.Networking
         /// </summary>
         /// <param name="result">The current status of the asynchronus operation</param>
         private void AcceptedCallback(IAsyncResult result)
-        {
+       {
             //Console.WriteLine("Recieved Call from " + _socket.RemoteEndPoint);
             var clientSocket = _socket.EndAccept(result);
             if (clientSocket != null)

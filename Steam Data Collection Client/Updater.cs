@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Xml;
+using Microsoft.Win32;
 using Steam_Data_Collection_Client.Networking;
 using Steam_Data_Collection_Client.Networking.Packets;
 using Steam_Data_Collection_Client.Objects;
@@ -104,6 +105,9 @@ namespace Steam_Data_Collection_Client
                 uri += "," + listOfIds[i];
             }
             uri += "&format=xml";
+
+            Console.WriteLine("Getting the information from steam");
+
             var s = new XmlReaderSettings {DtdProcessing = DtdProcessing.Ignore};
             var r = XmlReader.Create(uri,s);
             var people = new List<User>();
@@ -177,9 +181,10 @@ namespace Steam_Data_Collection_Client
                 }
             }
 
+            Console.WriteLine("Sending the information back to the server");
+
             CustomSocket.StartClient(new ListOfUsers(people, Program.HostId, 0, 3003).Data);
 
-            Console.ReadLine();
             return true;
         }
 

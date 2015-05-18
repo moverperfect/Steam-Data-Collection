@@ -53,7 +53,18 @@ namespace Steam_Data_Collection.Networking
 
                 case 3003:
                     var list = new ListOfUsers(packet);
-                    
+                    try
+                    {
+                        DataDealer.DealWithSum(list);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                    }
+                    finally
+                    {
+                        clientSocket.Send(new StdData("", 0, 0, 1000).Data);
+                    }
                     break;
             }
             clientSocket.Close();

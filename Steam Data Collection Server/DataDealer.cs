@@ -1,35 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Net.Sockets;
 using Steam_Data_Collection_Client.Networking.Packets;
 
 namespace Steam_Data_Collection
 {
-    static class DataDealer
+    internal static class DataDealer
     {
-        /// <summary>
-        /// Holds the information about users we are currently scanning
-        /// </summary>
-        public struct CurrentScan
-        {
-            /// <summary>
-            /// The Id of the user we are scanning
-            /// </summary>
-            public UInt64 SteamId { get; set; }
-
-            /// <summary>
-            /// The time that we start the scan
-            /// </summary>
-            public DateTime TimeOfScan { get; set; }
-
-            /// <summary>
-            /// The id of the host machine that is doing the scan
-            /// </summary>
-            public int HostId { get; set; }
-        }
-
         /// <summary>
         /// A list of the current ids being scanned on the summary
         /// </summary>
@@ -56,23 +33,27 @@ namespace Steam_Data_Collection
         /// </summary>
         public static ListOfId UpdateSum(bool mark, int hostId)
         {
-            var dt = (DataTable)Program.SqlDb.Select("SELECT PK_SteamId FROM tbl_user WHERE LastSummaryUpdate < NOW() - Interval " + Program.UpdateInterval + "  OR LastSummaryUpdate is Null ORDER BY LastSummaryUpdate;");
+            var dt =
+                (DataTable)
+                    Program.SqlDb.Select("SELECT PK_SteamId FROM tbl_user WHERE LastSummaryUpdate < NOW() - Interval " +
+                                         Program.UpdateInterval +
+                                         "  OR LastSummaryUpdate is Null ORDER BY LastSummaryUpdate;");
             var listOfIds = new List<UInt64>();
 
-            for (int i = 0; i < dt.Rows.Count; i++)
+            for (var i = 0; i < dt.Rows.Count; i++)
             {
-                listOfIds.Add((UInt64)dt.Rows[i][0]);
+                listOfIds.Add((UInt64) dt.Rows[i][0]);
             }
 
             if (mark)
             {
-                foreach (CurrentScan t in CurrSumList)
+                foreach (var t in CurrSumList)
                 {
                     listOfIds.Remove(t.SteamId);
                 }
                 foreach (var id in listOfIds)
                 {
-                    CurrSumList.Add(new CurrentScan() {HostId = hostId, SteamId = id, TimeOfScan = DateTime.Now});
+                    CurrSumList.Add(new CurrentScan {HostId = hostId, SteamId = id, TimeOfScan = DateTime.Now});
                 }
             }
 
@@ -83,9 +64,74 @@ namespace Steam_Data_Collection
                 l = listOfIds.Count;
             }
 
-            listOfIds = listOfIds.GetRange(0,l);
+            listOfIds = listOfIds.GetRange(0, l);
 
             return new ListOfId(listOfIds, 0, 0, 2002);
+        }
+
+        /// <summary>
+        /// Deals with the list of users from the client and adds it to the sql server
+        /// </summary>
+        /// <param name="tempList">The list of users info from the client</param>
+        public static void DealWithSum(ListOfUsers tempList)
+        {
+            foreach (var user in tempList.List)
+            {
+                var update = "UPDATE tbl_User SET VisibilityState = " + ((user.VisibilityState) ? 1 : 0) + ", UserName = '" +
+                             user.UserName.Replace("'", "\\\'") + "', LastLogOff = '" +
+                             user.LastLogOff.ToString("yyyy-MM-dd HH:mm:ss") + "', CustomURL = '" + user.CustomUrl +
+                             "', LastSummaryUpdate = '" + user.LastSummaryUpdate.ToString("yyyy-MM-dd HH:mm:ss") + "'";
+
+                if (user.VisibilityState)
+                {
+                    if (user.RealName != null)
+                    {
+                        update += ", RealName = '" + user.RealName.Replace("'", "\\\'") + "'";
+                    }
+
+                    update += ", PrimaryClanID = '" + user.PrimaryClanId +
+                              "', MemberSince = '" + user.MemberSince.ToString("yyyy-MM-dd HH:mm:ss") + "', Location = '" +
+                              user.Location +
+                              "'";
+                }
+
+                update += " WHERE PK_SteamID = '" + user.SteamId + "';";
+
+                Program.SqlDb.NonQuery(update);
+            }
+
+            foreach (var user in tempList.List)
+            {
+                for (var i = 0; i < CurrSumList.Count; i++)
+                {
+                    if (CurrSumList[i].SteamId == user.SteamId)
+                    {
+                        CurrSumList.RemoveAt(i);
+                        break;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Holds the information about users we are currently scanning
+        /// </summary>
+        public struct CurrentScan
+        {
+            /// <summary>
+            /// The Id of the user we are scanning
+            /// </summary>
+            public UInt64 SteamId { get; set; }
+
+            /// <summary>
+            /// The time that we start the scan
+            /// </summary>
+            public DateTime TimeOfScan { get; set; }
+
+            /// <summary>
+            /// The id of the host machine that is doing the scan
+            /// </summary>
+            public int HostId { get; set; }
         }
     }
 }
