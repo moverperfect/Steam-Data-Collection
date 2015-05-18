@@ -126,7 +126,7 @@ namespace Steam_Data_Collection.Networking
                         _packet = temp;
 
                         // If we have not finished receiving the data then call this function again recieving another 256 bytes
-                        if (_packet.Length != BitConverter.ToInt16(_packet, 0) && noReceived != 0)
+                        if (_packet.Length != BitConverter.ToUInt16(_packet, 0) && noReceived != 0)
                         {
                             clientSocket.BeginReceive(_buffer, 0, 256, SocketFlags.None, ReceivedCallBack, clientSocket);
                             return;
