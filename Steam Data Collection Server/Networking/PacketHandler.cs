@@ -32,6 +32,7 @@ namespace Steam_Data_Collection.Networking
             // 2001 - Update the host id
             // 2002 - Request to Update all the things
             // 2003 - Request to Update the summary
+            // 2004
             // 3003 - Information to update the summary to the server
             switch (packetType)
             {
@@ -51,6 +52,10 @@ namespace Steam_Data_Collection.Networking
                     clientSocket.Send(DataDealer.UpdateSum(true, new StdData(packet).MachineId).Data);
                     break;
 
+                case 2004:
+                    clientSocket.Send(DataDealer.UpdateGames(true, new StdData(packet).MachineId).Data);
+                    break;
+
                 case 3003:
                     var list = new ListOfUsers(packet);
                     try
@@ -66,8 +71,24 @@ namespace Steam_Data_Collection.Networking
                         clientSocket.Send(new StdData("", 0, 0, 1000).Data);
                     }
                     break;
+
+                case 3004:
+                    var gameUsers = new ListOfUsers(packet);
+                    try
+                    {
+                        DataDealer.DealWithGames(gameUsers);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                    }
+                    finally
+                    {
+                        clientSocket.Send(new StdData("", 0, 0, 1000).Data);
+                    }
+                    break;
             }
-            clientSocket.Close();
+            //clientSocket.Close();
         }
     }
 }

@@ -12,6 +12,8 @@ namespace Steam_Data_Collection
         /// </summary>
         public static List<CurrentScan> CurrSumList = new List<CurrentScan>();
 
+        public static List<CurrentScan> CurrGameList = new List<CurrentScan>();
+
         /// <summary>
         /// Tries to update all the things, returns a packet of the first thing to be updated
         /// </summary>
@@ -24,6 +26,7 @@ namespace Steam_Data_Collection
             {
                 return sum.Data;
             }
+
 
             return null;
         }
@@ -51,22 +54,68 @@ namespace Steam_Data_Collection
                 {
                     listOfIds.Remove(t.SteamId);
                 }
-                foreach (var id in listOfIds)
-                {
-                    CurrSumList.Add(new CurrentScan {HostId = hostId, SteamId = id, TimeOfScan = DateTime.Now});
-                }
             }
 
-            var l = 100;
+            var l = 20;
 
-            if (listOfIds.Count < 100)
+            if (listOfIds.Count < 20)
             {
                 l = listOfIds.Count;
             }
 
             listOfIds = listOfIds.GetRange(0, l);
 
-            return new ListOfId(listOfIds, 0, 0, 2002);
+            if (mark)
+            {
+                foreach (var id in listOfIds)
+                {
+                    CurrSumList.Add(new CurrentScan {HostId = hostId, SteamId = id, TimeOfScan = DateTime.Now});
+                }
+            }
+
+
+            return new ListOfId(listOfIds, 0, 0, 2003);
+        }
+
+        public static ListOfId UpdateGames(bool mark, int hostId)
+        {
+            var dt =
+                (DataTable)
+                    Program.SqlDb.Select("SELECT PK_SteamId FROM tbl_user WHERE (LastGameUpdate < NOW() - Interval " +
+                                         Program.UpdateInterval +
+                                         ") OR LastGameUpdate is Null AND VisibilityState = 1 ORDER BY LastGameUpdate;");
+            var listOfIds = new List<UInt64>();
+
+            for (var i = 0; i < dt.Rows.Count; i++)
+            {
+                listOfIds.Add((UInt64) dt.Rows[i][0]);
+            }
+
+            if (mark)
+            {
+                foreach (var t in CurrGameList)
+                {
+                    listOfIds.Remove(t.SteamId);
+                }
+            }
+            var l = 5;
+
+            if (listOfIds.Count < 5)
+            {
+                l = listOfIds.Count;
+            }
+
+            listOfIds = listOfIds.GetRange(0, l);
+
+            if (mark)
+            {
+                foreach (var id in listOfIds)
+                {
+                    CurrGameList.Add(new CurrentScan {HostId = hostId, SteamId = id, TimeOfScan = DateTime.Now});
+                }
+            }
+
+            return new ListOfId(listOfIds, 0, 0, 2004);
         }
 
         /// <summary>
@@ -77,7 +126,8 @@ namespace Steam_Data_Collection
         {
             foreach (var user in tempList.List)
             {
-                var update = "UPDATE tbl_User SET VisibilityState = " + ((user.VisibilityState) ? 1 : 0) + ", UserName = '" +
+                var update = "UPDATE tbl_User SET VisibilityState = " + ((user.VisibilityState) ? 1 : 0) +
+                             ", UserName = '" +
                              user.UserName.Replace("'", "\\\'") + "', LastLogOff = '" +
                              user.LastLogOff.ToString("yyyy-MM-dd HH:mm:ss") + "', CustomURL = '" + user.CustomUrl +
                              "', LastSummaryUpdate = '" + user.LastSummaryUpdate.ToString("yyyy-MM-dd HH:mm:ss") + "'";
@@ -90,7 +140,8 @@ namespace Steam_Data_Collection
                     }
 
                     update += ", PrimaryClanID = '" + user.PrimaryClanId +
-                              "', MemberSince = '" + user.MemberSince.ToString("yyyy-MM-dd HH:mm:ss") + "', Location = '" +
+                              "', MemberSince = '" + user.MemberSince.ToString("yyyy-MM-dd HH:mm:ss") +
+                              "', Location = '" +
                               user.Location +
                               "'";
                 }
@@ -110,6 +161,35 @@ namespace Steam_Data_Collection
                         break;
                     }
                 }
+            }
+        }
+
+        public static void DealWithGames(ListOfUsers tempList)
+        {
+            foreach (var user in tempList.List)
+            {
+                var updateUser = "UPDATE tbl_User SET LastGameUpdate = '" +
+                                 user.LastGameUpdate.ToString("yyyy-MM-dd HH:mm:ss") + "' WHERE PK_SteamId = " +
+                                 user.SteamId +
+                                 ";";
+                var insertLink = "INSERT INTO tbl_GCollectionLink VALUES (" + user.SteamId + ", '" +
+                                 user.LastGameUpdate.ToString("yyyy-MM-dd HH:mm:ss") + "');";
+                var insertGCollection =
+                    "INSERT INTO tbl_gcollection(`FK_SteamID`,`FK_TimeStamp`,`FK_AppID`,`MinsLast2Weeks`,`MinsOnRecord`) VALUES ";
+                foreach (var game in user.ListOfGames)
+                {
+                    insertGCollection += "('" + user.SteamId + "', '" +
+                                         user.LastGameUpdate.ToString("yyyy-MM-dd HH:mm:ss") + "', '" + game.AppId +
+                                         "', '" + game.Last2Weeks + "', '" +
+                                         game.OnRecord +
+                                         "'),";
+                }
+
+                insertGCollection = insertGCollection.TrimEnd(',') + ";";
+
+                Program.SqlDb.NonQuery(updateUser);
+                Program.SqlDb.NonQuery(insertLink);
+                Program.SqlDb.NonQuery(insertGCollection);
             }
         }
 

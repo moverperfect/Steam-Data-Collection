@@ -220,8 +220,6 @@ namespace Steam_Data_Collection_Client
                 return false;
             }
 
-            listOfIds = new List<ulong>();
-            listOfIds.Add(76561198062416279);
             Console.WriteLine("List received of length " + listOfIds.Count);
 
             var list = new List<User>();
@@ -288,7 +286,7 @@ namespace Steam_Data_Collection_Client
 
             Console.WriteLine("Sending the information back to the server");
 
-            //CustomSocket.StartClient(new ListOfUsers(people, Program.HostId, 0, 3003).Data);
+            CustomSocket.StartClient(new ListOfUsers(list, Program.HostId, 0, 3004).Data);
 
             return true;
         }
