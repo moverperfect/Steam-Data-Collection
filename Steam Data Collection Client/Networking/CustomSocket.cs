@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
+using System.Threading;
 
 namespace Steam_Data_Collection_Client.Networking
 {
@@ -13,61 +12,69 @@ namespace Steam_Data_Collection_Client.Networking
     {
         public static byte[] StartClient(byte[] data)
         {
-            // Data buffer for incoming data.
-            var bytes = new byte[1024];
-
-            // Connect to a remote device.
-            try
+            while (true)
             {
-                var remoteEp = new IPEndPoint(Program.IpAddress, Program.Port);
+                // Data buffer for incoming data.
+                var bytes = new byte[1024];
 
-                // Create a TCP/IP  socket.
-                var sender = new Socket(AddressFamily.InterNetwork,
-                    SocketType.Stream, ProtocolType.Tcp);
-
-                // Connect the socket to the remote endpoint. Catch any errors.
+                // Connect to a remote device.
                 try
                 {
-                    sender.Connect(remoteEp);
+                    var remoteEp = new IPEndPoint(Program.IpAddress, Program.Port);
 
-                    Console.WriteLine("Socket connected to {0}",
-                        sender.RemoteEndPoint.ToString());
+                    // Create a TCP/IP  socket.
+                    var sender = new Socket(AddressFamily.InterNetwork,
+                        SocketType.Stream, ProtocolType.Tcp);
 
-                    // Encode the data string into a byte array.
-                    var msg = data;
+                    // Connect the socket to the remote endpoint. Catch any errors.
+                    try
+                    {
+                        sender.Connect(remoteEp);
 
-                    // Send the data through the socket.
-                    var bytesSent = sender.Send(msg);
+                        Console.WriteLine("Socket connected to {0}",
+                            sender.RemoteEndPoint);
 
-                    // Receive the response from the remote device.
-                    var bytesRec = sender.Receive(bytes);
-                    
-                    // Release the socket.
-                    sender.Shutdown(SocketShutdown.Both);
-                    sender.Close();
+                        // Encode the data string into a byte array.
+                        var msg = data;
 
-                    Array.Resize(ref bytes, bytesRec);
+                        // Send the data through the socket.
+                        var bytesSent = sender.Send(msg);
 
-                    return bytes;
-                }
-                catch (ArgumentNullException ane)
-                {
-                    Console.WriteLine("ArgumentNullException : {0}", ane.ToString());
-                }
-                catch (SocketException se)
-                {
-                    Console.WriteLine("SocketException : {0}", se.ToString());
+                        // Receive the response from the remote device.
+                        var bytesRec = sender.Receive(bytes);
+
+                        // Release the socket.
+                        sender.Shutdown(SocketShutdown.Both);
+                        sender.Close();
+
+                        Array.Resize(ref bytes, bytesRec);
+
+                        if (bytesRec < 8)
+                        {
+                            throw new Exception();
+                        }
+
+                        return bytes;
+                    }
+                    catch (ArgumentNullException ane)
+                    {
+                        Console.WriteLine("ArgumentNullException : {0}", ane.Message);
+                    }
+                    catch (SocketException se)
+                    {
+                        Console.WriteLine("SocketException : {0}", se.Message);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine("Unexpected exception : {0}", e.Message);
+                    }
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine("Unexpected exception : {0}", e.ToString());
+                    Console.WriteLine(e.Message);
                 }
+                Thread.Sleep(500);
             }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.ToString());
-            }
-            return null;
         }
     }
 }

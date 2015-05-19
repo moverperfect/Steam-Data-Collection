@@ -76,7 +76,7 @@ namespace Steam_Data_Collection.Networking
         /// </summary>
         /// <param name="result">The current status of the asynchronus operation</param>
         private void AcceptedCallback(IAsyncResult result)
-       {
+        {
             //Console.WriteLine("Recieved Call from " + _socket.RemoteEndPoint);
             var clientSocket = _socket.EndAccept(result);
             if (clientSocket != null)
@@ -95,9 +95,10 @@ namespace Steam_Data_Collection.Networking
         /// <param name="result">The current status of the asynchronus operation</param>
         private void ReceivedCallBack(IAsyncResult result)
         {
+            Socket clientSocket = null;
             try
             {
-                var clientSocket = result.AsyncState as Socket;
+                clientSocket = result.AsyncState as Socket;
 
                 // If we are just receiving the length of the packet
                 if (_buffer.Length == 2)
@@ -108,39 +109,37 @@ namespace Steam_Data_Collection.Networking
                     if (clientSocket != null && _buffer.Length != 0)
                         clientSocket.BeginReceive(_buffer, 0, 256, SocketFlags.None, ReceivedCallBack,
                             clientSocket);
+                    return;
                 }
-                else
+                //Array.Copy(BitConverter.GetBytes(_buffer.Length), _buffer, 2);
+                if (clientSocket != null)
                 {
-                    //Array.Copy(BitConverter.GetBytes(_buffer.Length), _buffer, 2);
-                    if (clientSocket != null)
+                    SocketError se;
+
+                    // Increase the number of bytes we have recieved so far
+                    var noReceived = clientSocket.EndReceive(result, out se);
+
+                    // Add the stuff we have just received to the whole packet
+                    var temp = new byte[_packet.Length + noReceived];
+                    Array.Copy(_packet, temp, _packet.Length);
+                    Array.Copy(_buffer, 0, temp, _packet.Length, noReceived);
+                    _packet = temp;
+
+                    // If we have not finished receiving the data then call this function again recieving another 256 bytes
+                    if (_packet.Length != BitConverter.ToUInt16(_packet, 0) && noReceived != 0)
                     {
-                        SocketError se;
-
-                        // Increase the number of bytes we have recieved so far
-                        var noReceived = clientSocket.EndReceive(result, out se);
-
-                        // Add the stuff we have just received to the whole packet
-                        var temp = new byte[_packet.Length + noReceived];
-                        Array.Copy(_packet, temp, _packet.Length);
-                        Array.Copy(_buffer, 0, temp, _packet.Length, noReceived);
-                        _packet = temp;
-
-                        // If we have not finished receiving the data then call this function again recieving another 256 bytes
-                        if (_packet.Length != BitConverter.ToUInt16(_packet, 0) && noReceived != 0)
-                        {
-                            clientSocket.BeginReceive(_buffer, 0, 256, SocketFlags.None, ReceivedCallBack, clientSocket);
-                            return;
-                        }
-
-                        // If we are a success then handle the packet
-                        if (se == SocketError.Success)
-                        {
-                            HandlePacket(_packet, clientSocket);
-                        }
-                        clientSocket.Close();
+                        clientSocket.BeginReceive(_buffer, 0, 256, SocketFlags.None, ReceivedCallBack, clientSocket);
+                        return;
                     }
-                    _buffer = new byte[2];
+
+                    // If we are a success then handle the packet
+                    if (se == SocketError.Success)
+                    {
+                        HandlePacket(_packet, clientSocket);
+                    }
+                    clientSocket.Close();
                 }
+                _buffer = new byte[2];
             }
             catch (SocketException ex)
             {
@@ -150,6 +149,7 @@ namespace Steam_Data_Collection.Networking
             {
                 Console.WriteLine(ex.Message);
             }
+            if (clientSocket != null) clientSocket.Close();
         }
 
         /// <summary>
