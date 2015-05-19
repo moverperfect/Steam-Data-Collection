@@ -42,6 +42,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GetInformation.cs" />
     <Compile Include="Networking\CustomSocket.cs" />
     <Compile Include="Networking\Packets\ListOfId.cs" />
     <Compile Include="Networking\Packets\ListOfUsers.cs" />

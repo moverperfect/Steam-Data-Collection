@@ -2,11 +2,10 @@
 using System.IO;
 using System.Net;
 using System.Threading;
-using Steam_Data_Collection_Client.Networking;
 
 namespace Steam_Data_Collection_Client
 {
-    class Program
+    internal class Program
     {
         /// <summary>
         /// The ipaddress of the server machine
@@ -31,15 +30,15 @@ namespace Steam_Data_Collection_Client
         /// <summary>
         /// Entry point into the program
         /// </summary>
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             // Get the info for the server
-            Program.GetServerInfo();
+            GetServerInfo();
 
             while (true)
             {
                 Console.Clear();
-                Console.WriteLine("Server IP: " + IpAddress.ToString() + "      Port: " + Port.ToString());
+                Console.WriteLine("Server IP: " + IpAddress + "      Port: " + Port);
                 Console.WriteLine();
                 Console.WriteLine("Welcome to the steam data collection client!!");
                 Console.WriteLine("Please choose one of these options");
@@ -57,11 +56,11 @@ namespace Steam_Data_Collection_Client
                         break;
 
                     case "2":
-                        Program.GetInformationMenu();
+                        GetInformationMenu();
                         break;
 
                     case "3":
-                        Program.OptionsMenu();
+                        OptionsMenu();
                         break;
 
                     case "4":
@@ -79,7 +78,7 @@ namespace Steam_Data_Collection_Client
             while (true)
             {
                 Console.Clear();
-                Console.WriteLine("Server IP: " + IpAddress.ToString() + "      Port: " + Port.ToString());
+                Console.WriteLine("Server IP: " + IpAddress + "      Port: " + Port);
                 Console.WriteLine();
                 Console.WriteLine("You are a slave, do you care what you do?");
                 Console.WriteLine("1. No, just update \"Stuff\"");
@@ -112,7 +111,7 @@ namespace Steam_Data_Collection_Client
                     case "3":
                         while (Console.KeyAvailable == false)
                         {
-                            if (Updater.UpdatePlayerFriend(null) == false)
+                            if (Updater.UpdatePlayerGames(null) == false)
                             {
                                 Console.WriteLine("There are no users to update trying again in 30 seconds");
                                 Thread.Sleep(30000);
@@ -144,17 +143,23 @@ namespace Steam_Data_Collection_Client
             while (true)
             {
                 Console.Clear();
-                Console.WriteLine("Server IP: " + IpAddress.ToString() + "      Port: " + Port.ToString());
+                Console.WriteLine("Server IP: " + IpAddress + "      Port: " + Port);
                 Console.WriteLine();
                 Console.WriteLine("This has not been implemented yet, sorry");
-                Console.WriteLine("1. Exit");
+                Console.WriteLine("1. General statistics");
+                Console.WriteLine("2. Exit");
 
                 var option = Console.ReadLine();
 
                 switch (option)
                 {
                     case "1":
+                        GetInformation.ShowGenStats();
+                        break;
+
+                    case "2":
                         return;
+                        
                 }
             }
         }
@@ -167,7 +172,7 @@ namespace Steam_Data_Collection_Client
             while (true)
             {
                 Console.Clear();
-                Console.WriteLine("Server IP: " + IpAddress.ToString() + "      Port: " + Port.ToString());
+                Console.WriteLine("Server IP: " + IpAddress + "      Port: " + Port);
                 Console.WriteLine();
                 Console.WriteLine("Welcome to the options menu, please select one of the options");
                 Console.WriteLine("1. Change the server settings");
@@ -192,14 +197,15 @@ namespace Steam_Data_Collection_Client
         /// </summary>
         private static void GetServerInfo()
         {
-            while(!File.Exists(
-                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "/SteamDataCollection/serverInfo.txt"))
+            while (!File.Exists(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) +
+                "/SteamDataCollection/serverInfo.txt"))
             {
                 WriteServerInfo();
             }
 
             var serverInfo = File.ReadAllLines(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) +
-                              "/SteamDataCollection/serverInfo.txt");
+                                               "/SteamDataCollection/serverInfo.txt");
 
             if (!IPAddress.TryParse(serverInfo[0], out IpAddress))
             {
@@ -212,10 +218,7 @@ namespace Steam_Data_Collection_Client
             {
                 Console.WriteLine("Unable to parse the port number. Skipping");
                 Thread.Sleep(500);
-                return;
             }
-
-
         }
 
         /// <summary>
@@ -224,7 +227,7 @@ namespace Steam_Data_Collection_Client
         private static void WriteServerInfo()
         {
             Directory.CreateDirectory(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) +
-                                          "/SteamDataCollection/");
+                                      "/SteamDataCollection/");
 
             IPAddress ipAddress = null;
             var port = 0;
@@ -241,7 +244,7 @@ namespace Steam_Data_Collection_Client
             }
 
             File.WriteAllLines(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) +
-                                          "/SteamDataCollection/serverInfo.txt", new[]{ ipAddress.ToString(), port.ToString()});
+                               "/SteamDataCollection/serverInfo.txt", new[] {ipAddress.ToString(), port.ToString()});
 
             IpAddress = ipAddress;
             Port = port;

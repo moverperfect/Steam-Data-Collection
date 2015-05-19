@@ -88,5 +88,14 @@ namespace Steam_Data_Collection
             temp.NonQuery(msg);
         }
 
+        /// <summary>
+        /// Sends a count command to the sql server
+        /// </summary>
+        /// <param name="msg">The statement to send to the server</param>
+        public static string Count(string msg)
+        {
+            var temp = new SqlConnecter("db_steamdata");
+            return temp.Count(msg).ToString();
+        }
     }
 }

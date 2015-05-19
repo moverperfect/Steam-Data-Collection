@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using Steam_Data_Collection_Client.Networking.Packets;
 
 namespace Steam_Data_Collection
@@ -27,7 +26,11 @@ namespace Steam_Data_Collection
                 return sum.Data;
             }
 
-
+            var game = UpdateGames(true, hostId);
+            if (game.List.Count > 0)
+            {
+                return game.Data;
+            }
             return null;
         }
 
@@ -55,9 +58,9 @@ namespace Steam_Data_Collection
                 }
             }
 
-            var l = 20;
+            var l = 100;
 
-            if (listOfIds.Count < 20)
+            if (listOfIds.Count < 100)
             {
                 l = listOfIds.Count;
             }
@@ -194,7 +197,7 @@ namespace Steam_Data_Collection
                 }
 
                 insertGCollection = insertGCollection.TrimEnd(',') + ";";
-                
+
                 Program.NonQuery(updateUser + insertLink + insertGCollection);
             }
 

@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Data;
 using System.Net.Sockets;
 using Steam_Data_Collection_Client.Networking.Packets;
-using Steam_Data_Collection_Client.Objects;
 
 namespace Steam_Data_Collection.Networking
 {
@@ -55,6 +52,10 @@ namespace Steam_Data_Collection.Networking
                 case 2004:
                     clientSocket.Send(DataDealer.UpdateGames(true, new StdData(packet).MachineId).Data);
                     break;
+                    
+                case 2050:
+                    clientSocket.Send(new StdData(GetInformation.ShowGenStats(new StdData(packet).MachineId), 0, 0, 3050).Data);
+                    break;
 
                 case 3003:
                     var list = new ListOfUsers(packet);
@@ -88,7 +89,6 @@ namespace Steam_Data_Collection.Networking
                     }
                     break;
             }
-            //clientSocket.Close();
         }
     }
 }

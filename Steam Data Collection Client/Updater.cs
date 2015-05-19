@@ -13,7 +13,7 @@ namespace Steam_Data_Collection_Client
         /// <summary>
         /// Asks the server for a new host id
         /// </summary>
-        private static void UpdateHostId()
+        public static void UpdateHostId()
         {
             var msg = new StdData("", Program.HostId, 0, 2001);
             var rec = new StdData(CustomSocket.StartClient(msg.Data));
@@ -45,15 +45,28 @@ namespace Steam_Data_Collection_Client
         {
             UpdateHostId();
             UpdateSteamToken();
+            Console.Clear();
             while (true)
             {
-                Console.Clear();
                 Thread.Sleep(1000);
-                Console.Clear();
                 Console.WriteLine("Server IP: " + Program.IpAddress + "      Port: " + Program.Port + "       HostId: " +
                                   Program.HostId);
                 var packet = CustomSocket.StartClient(new StdData("", Program.HostId, 0, 2002).Data);
-                UpdatePlayerSum(new ListOfId(packet).List);
+
+                switch (new StdData(packet).PacketType)
+                {
+                    case 2003:
+                        UpdatePlayerSum(new ListOfId(packet).List);
+                        break;
+                    case 2004:
+                        UpdatePlayerGames(new ListOfId(packet).List);
+                        break;
+
+                    default:
+                        Console.WriteLine("Nothing to update, waiting 30 seconds");
+                        Thread.Sleep(30000);
+                        break;
+                }
             }
         }
 
@@ -187,7 +200,12 @@ namespace Steam_Data_Collection_Client
             return true;
         }
 
-        public static bool UpdatePlayerFriend(List<ulong> listOfIds)
+        /// <summary>
+        /// Gets the information from steam to update the games for users
+        /// </summary>
+        /// <param name="listOfIds">Can be null also can enter ids</param>
+        /// <returns>True or false as to if the server has no more</returns>
+        public static bool UpdatePlayerGames(List<ulong> listOfIds)
         {
             if (Program.HostId == 0)
             {
@@ -291,7 +309,7 @@ namespace Steam_Data_Collection_Client
             return true;
         }
 
-        private static void UpdatePlayerGames()
+        private static void UpdatePlayerFriends()
         {
         }
 
