@@ -196,6 +196,11 @@ namespace Steam_Data_Collection
                                          "'),";
                 }
 
+                if (user.ListOfGames.Count == 0)
+                {
+                    insertGCollection = "";
+                }
+
                 insertGCollection = insertGCollection.TrimEnd(',') + ";";
 
                 Program.NonQuery(updateUser + insertLink + insertGCollection);
