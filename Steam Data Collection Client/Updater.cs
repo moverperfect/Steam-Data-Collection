@@ -254,9 +254,7 @@ namespace Steam_Data_Collection_Client
                 var s = new XmlReaderSettings {DtdProcessing = DtdProcessing.Ignore};
                 var r = XmlReader.Create(uri, s);
 
-                var temp = new User();
-                temp.SteamId = listOfId;
-                temp.LastGameUpdate = DateTime.Now;
+                var temp = new User {SteamId = listOfId, LastGameUpdate = DateTime.Now};
 
                 var tempGame = new GameHistory();
 

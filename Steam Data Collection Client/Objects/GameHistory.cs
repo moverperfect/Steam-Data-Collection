@@ -10,7 +10,7 @@ namespace Steam_Data_Collection_Client.Objects
         /// <summary>
         /// The ID number of the app
         /// </summary>
-        public int AppId { get; set; }
+        public int AppId { get; internal set; }
 
         /// <summary>
         /// The number

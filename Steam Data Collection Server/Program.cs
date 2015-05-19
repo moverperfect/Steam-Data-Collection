@@ -1,21 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using Steam_Data_Collection.Networking;
 
 namespace Steam_Data_Collection
 {
-    class Program
+    internal static class Program
     {
         /// <summary>
         /// Socket used to communicate with the clients
         /// </summary>
-        private static ServerSocket Socket = new ServerSocket();
+        private static readonly ServerSocket Socket = new ServerSocket();
 
         /// <summary>
         /// Steam token used to connect with steam
@@ -30,7 +25,7 @@ namespace Steam_Data_Collection
         /// <summary>
         /// Main entry point into the program, gets the token and starts listening
         /// </summary>
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             UpdateSettings();
 
@@ -48,7 +43,7 @@ namespace Steam_Data_Collection
         /// <summary>
         /// Updated the server settings
         /// </summary>
-        static void UpdateSettings()
+        private static void UpdateSettings()
         {
             if (!File.Exists("settings.txt"))
             {
@@ -75,7 +70,7 @@ namespace Steam_Data_Collection
         public static DataTable Select(String msg)
         {
             var temp = new SqlConnecter("db_steamdata");
-            return (DataTable)temp.Select(msg);
+            return (DataTable) temp.Select(msg);
         }
 
         /// <summary>

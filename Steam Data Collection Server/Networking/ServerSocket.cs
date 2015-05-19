@@ -8,7 +8,7 @@ namespace Steam_Data_Collection.Networking
     /// <summary>
     /// A custom built socket to handle any incoming data or connections
     /// </summary>
-    public class ServerSocket
+    internal class ServerSocket
     {
         /// <summary>
         /// Acts as the buffer byte array storing 256 bytes at every CallBack

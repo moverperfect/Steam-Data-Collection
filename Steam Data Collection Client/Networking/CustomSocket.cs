@@ -8,7 +8,7 @@ namespace Steam_Data_Collection_Client.Networking
     /// <summary>
     /// A custom built socket to handle any incoming data or connections
     /// </summary>
-    public class CustomSocket
+    internal static class CustomSocket
     {
         public static byte[] StartClient(byte[] data)
         {

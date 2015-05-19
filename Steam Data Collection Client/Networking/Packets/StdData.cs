@@ -28,7 +28,6 @@ namespace Steam_Data_Collection_Client.Networking.Packets
         public StdData(byte[] packet)
             : base(packet)
         {
-
         }
 
         /// <summary>

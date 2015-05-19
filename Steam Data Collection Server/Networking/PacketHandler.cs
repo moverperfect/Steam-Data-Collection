@@ -52,9 +52,10 @@ namespace Steam_Data_Collection.Networking
                 case 2004:
                     clientSocket.Send(DataDealer.UpdateGames(true, new StdData(packet).MachineId).Data);
                     break;
-                    
+
                 case 2050:
-                    clientSocket.Send(new StdData(GetInformation.ShowGenStats(new StdData(packet).MachineId), 0, 0, 3050).Data);
+                    clientSocket.Send(
+                        new StdData(GetInformation.ShowGenStats(new StdData(packet).MachineId), 0, 0, 3050).Data);
                     break;
 
                 case 3003:

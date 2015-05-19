@@ -14,7 +14,7 @@ namespace Steam_Data_Collection_Client
     /// 
     /// Seven degrees - Enter two different usernames and get back the path to get between them and the route
     /// </summary>
-    public static class GetInformation
+    internal static class GetInformation
     {
         public static void ShowGenStats()
         {
@@ -29,13 +29,15 @@ namespace Steam_Data_Collection_Client
 
                 Console.Clear();
 
-                Console.WriteLine("Server IP: " + Program.IpAddress + "      Port: " + Program.Port + "       HostId: " + Program.HostId);
+                Console.WriteLine("Server IP: " + Program.IpAddress + "      Port: " + Program.Port + "       HostId: " +
+                                  Program.HostId);
 
                 Console.WriteLine();
 
                 Console.WriteLine("Getting the information from the server");
 
-                var information = new StdData(CustomSocket.StartClient(new StdData("", Program.HostId, 0, 2050).Data)).Text;
+                var information =
+                    new StdData(CustomSocket.StartClient(new StdData("", Program.HostId, 0, 2050).Data)).Text;
 
                 Console.WriteLine(information);
 

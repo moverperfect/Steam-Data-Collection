@@ -5,7 +5,7 @@ using System.Threading;
 
 namespace Steam_Data_Collection_Client
 {
-    internal class Program
+    internal static class Program
     {
         /// <summary>
         /// The ipaddress of the server machine
@@ -20,7 +20,7 @@ namespace Steam_Data_Collection_Client
         /// <summary>
         /// The host id of the machine, assigned by the server
         /// </summary>
-        public static ushort HostId = 0;
+        public static ushort HostId;
 
         /// <summary>
         /// The token used to communicate with steam
@@ -159,7 +159,6 @@ namespace Steam_Data_Collection_Client
 
                     case "2":
                         return;
-                        
                 }
             }
         }

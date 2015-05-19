@@ -46,7 +46,6 @@ namespace Steam_Data_Collection_Client.Networking.Packets
         /// </summary>
         protected PacketStructure()
         {
-
         }
 
         /// <summary>

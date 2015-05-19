@@ -78,7 +78,7 @@ namespace Steam_Data_Collection_Client.Networking.Packets
             }
             // Add the length metadata to the byte array
             Buffer = new Byte[binaryDataResult.Length + 8];
-            WriteUShort((ushort)Buffer.Length, 0);
+            WriteUShort((ushort) Buffer.Length, 0);
             Array.Copy(binaryDataResult, 0, Buffer, 8, binaryDataResult.Length);
         }
 
@@ -94,7 +94,7 @@ namespace Steam_Data_Collection_Client.Networking.Packets
             using (var stream = new MemoryStream(arrayBytes))
             {
                 var bformatter = new BinaryFormatter();
-                list = (List<User>)bformatter.Deserialize(stream);
+                list = (List<User>) bformatter.Deserialize(stream);
             }
             // Adding list into list object    
             _list = list;
