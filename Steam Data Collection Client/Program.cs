@@ -102,8 +102,8 @@ namespace Steam_Data_Collection_Client
                         {
                             if (Updater.UpdatePlayerSum(null) == false)
                             {
-                                Console.WriteLine("There are no users to update trying again in 5 mins");
-                                Thread.Sleep(1000 * 60 * 5 - 500);
+                                Console.WriteLine("There are no users to update trying again in 30 seconds");
+                                Thread.Sleep(30000);
                             }
                             Thread.Sleep(500);
                         }
@@ -114,8 +114,8 @@ namespace Steam_Data_Collection_Client
                         {
                             if (Updater.UpdatePlayerFriend(null) == false)
                             {
-                                Console.WriteLine("There are no users to update trying again in 5 mins");
-                                Thread.Sleep(1000 * 60 * 5 - 500);
+                                Console.WriteLine("There are no users to update trying again in 30 seconds");
+                                Thread.Sleep(30000);
                             }
                             Thread.Sleep(500);
                         }
