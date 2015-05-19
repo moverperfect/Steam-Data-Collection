@@ -11,6 +11,9 @@ namespace Steam_Data_Collection
         /// </summary>
         public static List<CurrentScan> CurrSumList = new List<CurrentScan>();
 
+        /// <summary>
+        /// A list of the current ids being scanned on the game
+        /// </summary>
         public static List<CurrentScan> CurrGameList = new List<CurrentScan>();
 
         /// <summary>

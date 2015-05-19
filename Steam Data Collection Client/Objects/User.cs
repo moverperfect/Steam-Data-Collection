@@ -80,11 +80,6 @@ namespace Steam_Data_Collection_Client.Objects
         public List<Friend> ListOfFriends { get; set; }
 
         /// <summary>
-        /// A list of the groups of the user
-        /// </summary>
-        public List<Group> ListOfGroups { get; set; }
-
-        /// <summary>
         /// A list of the games that the user owns
         /// </summary>
         public List<GameHistory> ListOfGames { get; set; }
@@ -97,7 +92,6 @@ namespace Steam_Data_Collection_Client.Objects
         public User()
         {
             ListOfFriends = new List<Friend>();
-            ListOfGroups = new List<Group>();
             ListOfGames = new List<GameHistory>();
         }
     }
