@@ -18,11 +18,6 @@ namespace Steam_Data_Collection
         private static ServerSocket Socket = new ServerSocket();
 
         /// <summary>
-        /// Sql connecter used to connect to mysql
-        /// </summary>
-        public static SqlConnecter SqlDb = new SqlConnecter("db_steamdata");
-
-        /// <summary>
         /// Steam token used to connect with steam
         /// </summary>
         public static String SteamToken;
@@ -71,6 +66,26 @@ namespace Steam_Data_Collection
 
             SteamToken = settings[0];
             UpdateInterval = settings[1];
+        }
+
+        /// <summary>
+        /// Sends a select statement to the mysql sever
+        /// </summary>
+        /// <param name="msg">The statement to send to mysql</param>
+        public static DataTable Select(String msg)
+        {
+            var temp = new SqlConnecter("db_steamdata");
+            return (DataTable)temp.Select(msg);
+        }
+
+        /// <summary>
+        /// Sends a nonquery to the sql sever
+        /// </summary>
+        /// <param name="msg">The statement to send to the server</param>
+        public static void NonQuery(String msg)
+        {
+            var temp = new SqlConnecter("db_steamdata");
+            temp.NonQuery(msg);
         }
 
     }

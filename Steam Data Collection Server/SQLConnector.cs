@@ -115,12 +115,22 @@ namespace Steam_Data_Collection
         /// <param name="query">The query to be sent</param>
         public void NonQuery(String query)
         {
-            if (OpenConnection())
+            try
             {
-                var cmd = new MySqlCommand(query, _connection);
+                if (OpenConnection())
+                {
+                    var cmd = new MySqlCommand(query, _connection);
 
-                cmd.ExecuteNonQuery();
-
+                    cmd.ExecuteNonQuery();
+                }
+            }
+            catch (Exception exception)
+            {
+                Console.WriteLine(query);
+                Console.WriteLine(exception);
+            }
+            finally
+            {
                 CloseConnection();
             }
         }

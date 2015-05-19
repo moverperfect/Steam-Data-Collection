@@ -37,10 +37,9 @@ namespace Steam_Data_Collection
         public static ListOfId UpdateSum(bool mark, int hostId)
         {
             var dt =
-                (DataTable)
-                    Program.SqlDb.Select("SELECT PK_SteamId FROM tbl_user WHERE LastSummaryUpdate < NOW() - Interval " +
-                                         Program.UpdateInterval +
-                                         "  OR LastSummaryUpdate is Null ORDER BY LastSummaryUpdate;");
+                Program.Select("SELECT PK_SteamId FROM tbl_user WHERE LastSummaryUpdate < NOW() - Interval " +
+                               Program.UpdateInterval +
+                               "  OR LastSummaryUpdate is Null ORDER BY LastSummaryUpdate;");
             var listOfIds = new List<UInt64>();
 
             for (var i = 0; i < dt.Rows.Count; i++)
@@ -77,13 +76,18 @@ namespace Steam_Data_Collection
             return new ListOfId(listOfIds, 0, 0, 2003);
         }
 
+        /// <summary>
+        /// Get a list of the ids that need to be game updated
+        /// </summary>
+        /// <param name="mark">Whether to 'mark' the ids as being searched</param>
+        /// <param name="hostId">The host id of the machine going to be searching</param>
+        /// <returns>A list of the ids to be searched through</returns>
         public static ListOfId UpdateGames(bool mark, int hostId)
         {
             var dt =
-                (DataTable)
-                    Program.SqlDb.Select("SELECT PK_SteamId FROM tbl_user WHERE (LastGameUpdate < NOW() - Interval " +
-                                         Program.UpdateInterval +
-                                         ") OR LastGameUpdate is Null AND VisibilityState = 1 ORDER BY LastGameUpdate;");
+                Program.Select("SELECT PK_SteamId FROM tbl_user WHERE (LastGameUpdate < NOW() - Interval " +
+                               Program.UpdateInterval +
+                               ") OR LastGameUpdate is Null AND VisibilityState = 1 ORDER BY LastGameUpdate;");
             var listOfIds = new List<UInt64>();
 
             for (var i = 0; i < dt.Rows.Count; i++)
@@ -148,7 +152,7 @@ namespace Steam_Data_Collection
 
                 update += " WHERE PK_SteamID = '" + user.SteamId + "';";
 
-                Program.SqlDb.NonQuery(update);
+                Program.NonQuery(update);
             }
 
             foreach (var user in tempList.List)
@@ -164,6 +168,10 @@ namespace Steam_Data_Collection
             }
         }
 
+        /// <summary>
+        /// Deals with the incoming data about games and parses it into the sql sever
+        /// </summary>
+        /// <param name="tempList">The user game information</param>
         public static void DealWithGames(ListOfUsers tempList)
         {
             foreach (var user in tempList.List)
@@ -186,10 +194,20 @@ namespace Steam_Data_Collection
                 }
 
                 insertGCollection = insertGCollection.TrimEnd(',') + ";";
+                
+                Program.NonQuery(updateUser + insertLink + insertGCollection);
+            }
 
-                Program.SqlDb.NonQuery(updateUser);
-                Program.SqlDb.NonQuery(insertLink);
-                Program.SqlDb.NonQuery(insertGCollection);
+            foreach (var user in tempList.List)
+            {
+                for (var i = 0; i < CurrGameList.Count; i++)
+                {
+                    if (CurrGameList[i].SteamId == user.SteamId)
+                    {
+                        CurrGameList.RemoveAt(i);
+                        break;
+                    }
+                }
             }
         }
 
