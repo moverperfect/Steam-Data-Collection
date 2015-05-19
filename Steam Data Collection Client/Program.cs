@@ -47,12 +47,21 @@ namespace Steam_Data_Collection_Client
                 Console.WriteLine("3. Options");
                 Console.WriteLine("4. Exit");
 
-                var option = Console.ReadLine();
+                String option;
+
+                if (args.Length == 0)
+                {
+                    option = Console.ReadLine();
+                }
+                else
+                {
+                    option = args[0];
+                }
 
                 switch (option)
                 {
                     case "1":
-                        SlaveMenu();
+                        SlaveMenu(args);
                         break;
 
                     case "2":
@@ -73,7 +82,7 @@ namespace Steam_Data_Collection_Client
         /// <summary>
         /// Displays and controls the "Be a slave" menu
         /// </summary>
-        private static void SlaveMenu()
+        private static void SlaveMenu(string[] args)
         {
             while (true)
             {
@@ -88,7 +97,16 @@ namespace Steam_Data_Collection_Client
                 Console.WriteLine("5. Update group's");
                 Console.WriteLine("6. Exit");
 
-                var option = Console.ReadLine();
+                string option;
+
+                if (args.Length < 2)
+                {
+                    option = Console.ReadLine();
+                }
+                else
+                {
+                    option = args[1];
+                }
 
                 switch (option)
                 {
