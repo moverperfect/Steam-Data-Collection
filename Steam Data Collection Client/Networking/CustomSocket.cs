@@ -40,6 +40,8 @@ namespace Steam_Data_Collection_Client.Networking
                         // Send the data through the socket.
                         var bytesSent = sender.Send(msg);
 
+                        sender.ReceiveTimeout = 5000;
+
                         // Receive the response from the remote device.
                         var bytesRec = sender.Receive(bytes);
 

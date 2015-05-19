@@ -1,209 +1,119 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 
 namespace Steam_Data_Collection.Networking
 {
+    // State object for reading client data asynchronously
+    public class StateObject
+    {
+        // Client  socket.
+        // Size of receive buffer.
+        public const int BufferSize = 1024;
+        // Receive buffer.
+        public byte[] Buffer = new byte[BufferSize];
+        // Received data string.
+        public byte[] Data = new byte[0];
+        public Socket WorkSocket = null;
+    }
+
     /// <summary>
     /// A custom built socket to handle any incoming data or connections
     /// </summary>
     internal class ServerSocket
     {
-        /// <summary>
-        /// Acts as the buffer byte array storing 256 bytes at every CallBack
-        /// </summary>
-        private byte[] _buffer;
+        public static ManualResetEvent allDone = new ManualResetEvent(false);
 
-        /// <summary>
-        /// Acts the collective packet that contains the whole byte array when all is recieved
-        /// </summary>
-        private byte[] _packet;
-
-        /// <summary>
-        /// The socket which communicates with the server/client
-        /// </summary>
-        private Socket _socket;
-
-        /// <summary>
-        /// Initialises the socket with protocol tcp
-        /// </summary>
-        public ServerSocket()
+        public static void StartListening()
         {
-            _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-        }
+            // Data buffer for incoming data.
+            var bytes = new Byte[1024];
 
-        /// <summary>
-        /// Connects to the parsed ip address and port number
-        /// </summary>
-        /// <param name="ipAddress">The ip address to connect to</param>
-        /// <param name="port">The port number to access</param>
-        public void Connect(IPAddress ipAddress, int port)
-        {
-            _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            _socket.BeginConnect(new IPEndPoint(ipAddress, port), ConnectCallback, null);
-        }
+            // Create a TCP/IP socket.
+            var listener = new Socket(AddressFamily.InterNetwork,
+                SocketType.Stream, ProtocolType.Tcp);
 
-        /// <summary>
-        /// Bind the socket to a port number
-        /// </summary>
-        /// <param name="port">Port number to bind the socket to</param>
-        public void Bind(int port)
-        {
-            _socket.Bind(new IPEndPoint(IPAddress.Any, port));
-        }
-
-        /// <summary>
-        /// Listens for connections after binding
-        /// </summary>
-        /// <param name="backlog">The backlog number of connections</param>
-        public void Listen(int backlog)
-        {
-            _socket.Listen(backlog);
-            Console.WriteLine("Listening...");
-        }
-
-        /// <summary>
-        /// Begin Accepting connections
-        /// </summary>
-        public void Accept()
-        {
-            _socket.BeginAccept(AcceptedCallback, null);
-        }
-
-        /// <summary>
-        /// When accepted start recieving
-        /// </summary>
-        /// <param name="result">The current status of the asynchronus operation</param>
-        private void AcceptedCallback(IAsyncResult result)
-        {
-            //Console.WriteLine("Recieved Call from " + _socket.RemoteEndPoint);
-            var clientSocket = _socket.EndAccept(result);
-            if (clientSocket != null)
+            // Bind the socket to the local endpoint and listen for incoming connections.
+            try
             {
-                _packet = null;
-                _buffer = new byte[2];
+                listener.Bind(new IPEndPoint(IPAddress.Any, 8220));
+                listener.Listen(500);
 
-                clientSocket.BeginReceive(_buffer, 0, _buffer.Length, SocketFlags.None, ReceivedCallBack, clientSocket);
-                Accept();
+                while (true)
+                {
+                    // Set the event to nonsignaled state.
+                    allDone.Reset();
+
+                    // Start an asynchronous socket to listen for connections.
+                    listener.BeginAccept(
+                        AcceptCallback,
+                        listener);
+
+                    // Wait until a connection is made before continuing.
+                    allDone.WaitOne();
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
             }
         }
 
-        /// <summary>
-        /// Handle the incoming bytes into the packet
-        /// </summary>
-        /// <param name="result">The current status of the asynchronus operation</param>
-        private void ReceivedCallBack(IAsyncResult result)
+        public static void AcceptCallback(IAsyncResult ar)
         {
-            Socket clientSocket = null;
+            // Signal the main thread to continue.
+            allDone.Set();
+
+            // Get the socket that handles the client request.
+            var listener = (Socket) ar.AsyncState;
+            var handler = listener.EndAccept(ar);
+
+            // Create the state object.
+            var state = new StateObject();
+            state.WorkSocket = handler;
+            handler.BeginReceive(state.Buffer, 0, StateObject.BufferSize, 0,
+                ReadCallback, state);
+        }
+
+        public static void ReadCallback(IAsyncResult ar)
+        {
+            // Retrieve the state object and the handler socket
+            // from the asynchronous state object.
+            var state = (StateObject) ar.AsyncState;
+            var handler = state.WorkSocket;
+
             try
             {
-                clientSocket = result.AsyncState as Socket;
+                // Read data from the client socket. 
+                SocketError se;
+                var bytesRead = handler.EndReceive(ar, out se);
 
-                // If we are just receiving the length of the packet
-                if (_buffer.Length == 2)
+                if (bytesRead > 0)
                 {
-                    // Read more after the length
-                    _packet = _buffer;
-                    _buffer = new byte[256];
-                    if (clientSocket != null && _buffer.Length != 0)
-                        clientSocket.BeginReceive(_buffer, 0, 256, SocketFlags.None, ReceivedCallBack,
-                            clientSocket);
-                    return;
-                }
-                //Array.Copy(BitConverter.GetBytes(_buffer.Length), _buffer, 2);
-                if (clientSocket != null)
-                {
-                    SocketError se;
+                    // There  might be more data, so store the data received so far.
+                    var temp = new byte[state.Data.Length + bytesRead];
+                    Array.Copy(state.Data, temp, state.Data.Length);
+                    Array.Copy(state.Buffer, 0, temp, state.Data.Length, bytesRead);
+                    state.Data = temp;
 
-                    // Increase the number of bytes we have recieved so far
-                    var noReceived = clientSocket.EndReceive(result, out se);
-
-                    // Add the stuff we have just received to the whole packet
-                    var temp = new byte[_packet.Length + noReceived];
-                    Array.Copy(_packet, temp, _packet.Length);
-                    Array.Copy(_buffer, 0, temp, _packet.Length, noReceived);
-                    _packet = temp;
-
-                    // If we have not finished receiving the data then call this function again recieving another 256 bytes
-                    if (_packet.Length != BitConverter.ToUInt16(_packet, 0) && noReceived != 0)
+                    if (state.Data.Length != BitConverter.ToUInt16(state.Data, 0) && bytesRead != 0)
                     {
-                        clientSocket.BeginReceive(_buffer, 0, 256, SocketFlags.None, ReceivedCallBack, clientSocket);
+                        handler.BeginReceive(state.Buffer, 0, StateObject.BufferSize, 0, ReadCallback, state);
                         return;
                     }
 
-                    // If we are a success then handle the packet
-                    if (se == SocketError.Success)
-                    {
-                        HandlePacket(_packet, clientSocket);
-                    }
-                    clientSocket.Close();
-                }
-                _buffer = new byte[2];
-            }
-            catch (SocketException ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-            if (clientSocket != null) clientSocket.Close();
-        }
-
-        /// <summary>
-        /// Calles the packethandler to handle the incoming packet
-        /// </summary>
-        /// <param name="packet">The packet being handled</param>
-        /// <param name="clientSocket">The socket to send back data if needed</param>
-        public virtual void HandlePacket(byte[] packet, Socket clientSocket)
-        {
-            PacketHandler.Handle(packet, clientSocket);
-        }
-
-        /// <summary>
-        /// Happens when requested connection is accepted
-        /// </summary>
-        /// <param name="result">The current status of the asynchronus operation</param>
-        private void ConnectCallback(IAsyncResult result)
-        {
-            if (_socket.Connected)
-            {
-                // If we are connected then end the connection request
-                // TODO NOTE A event handler could be used here to send the data after we have connected but this was not
-                // realised at the time of design maybe
-                _socket.EndConnect(result);
-                Console.WriteLine("Connected to the server!");
-                _buffer = new byte[2];
-
-                // Start receiving in case the connected server needs to send data back
-                _socket.BeginReceive(_buffer, 0, _buffer.Length, SocketFlags.None, ReceivedCallBack, _socket);
-            }
-        }
-
-        /// <summary>
-        /// If the server is connected within 3 seconds, sends the data, if not MessageBox
-        /// </summary>
-        /// <param name="data">The byte array to be sent to the server</param>
-        internal void Send(byte[] data)
-        {
-            var stopwatch = new Stopwatch();
-            stopwatch.Start();
-            // While less than 3 seconds have passed try to send the data
-            while (stopwatch.ElapsedMilliseconds < 3000)
-            {
-                if (_socket.Connected)
-                {
-                    _socket.Send(data);
-                    return;
+                    
+                        PacketHandler.Handle(state.Data, state.WorkSocket);
+                    
+                    state.WorkSocket.Close();
                 }
             }
-            // If still not connected after 3 seconds then display error message
-            if (!_socket.Connected)
+            catch (Exception e)
             {
-                Console.WriteLine("Unable to connect to server");
+                Console.WriteLine(e.Message);
             }
+            state.WorkSocket.Close();
         }
     }
 }

@@ -31,7 +31,7 @@ namespace Steam_Data_Collection
             {
                 return game.Data;
             }
-            return null;
+            return new ListOfId(new List<ulong>(), 0, 0, 2000).Data;
         }
 
         /// <summary>

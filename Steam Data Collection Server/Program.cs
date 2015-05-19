@@ -7,10 +7,6 @@ namespace Steam_Data_Collection
 {
     internal static class Program
     {
-        /// <summary>
-        /// Socket used to communicate with the clients
-        /// </summary>
-        private static readonly ServerSocket Socket = new ServerSocket();
 
         /// <summary>
         /// Steam token used to connect with steam
@@ -29,9 +25,8 @@ namespace Steam_Data_Collection
         {
             UpdateSettings();
 
-            Socket.Bind(8220);
-            Socket.Listen(500);
-            Socket.Accept();
+            ServerSocket.StartListening();
+
             while (true)
             {
                 Console.Clear();
