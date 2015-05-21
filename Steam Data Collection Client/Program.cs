@@ -163,9 +163,10 @@ namespace Steam_Data_Collection_Client
                 Console.Clear();
                 Console.WriteLine("Server IP: " + IpAddress + "      Port: " + Port);
                 Console.WriteLine();
-                Console.WriteLine("This has not been implemented yet, sorry");
+                Console.WriteLine("Please choose an option below");
                 Console.WriteLine("1. General statistics");
-                Console.WriteLine("2. Exit");
+                Console.WriteLine("2. Show statistics for a player");
+                Console.WriteLine("3. Exit");
 
                 var option = Console.ReadLine();
 
@@ -176,6 +177,10 @@ namespace Steam_Data_Collection_Client
                         break;
 
                     case "2":
+                        GetInformation.ShowPlayerStats();
+                        break;
+
+                    case "3":
                         return;
                 }
             }

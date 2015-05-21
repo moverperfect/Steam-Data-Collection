@@ -38,6 +38,7 @@ namespace Steam_Data_Collection.Networking
                     break;
 
                 case 2001:
+                    Console.WriteLine(new StdData("21", 0, 0, 2001).Data);
                     clientSocket.Send(new StdData("21", 0, 0, 2001).Data);
                     break;
 
@@ -56,6 +57,11 @@ namespace Steam_Data_Collection.Networking
                 case 2050:
                     clientSocket.Send(
                         new StdData(GetInformation.ShowGenStats(new StdData(packet).MachineId), 0, 0, 3050).Data);
+                    break;
+
+                case 2051:
+                    clientSocket.Send(
+                        new ListOfUsers(GetInformation.ShowPlayerStats(new StdData(packet)), 0, 0, 3051).Data);
                     break;
 
                 case 3003:
