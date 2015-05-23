@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
+using System.Data;
 using Steam_Data_Collection_Client.Networking.Packets;
 
 namespace Steam_Data_Collection
@@ -15,6 +17,11 @@ namespace Steam_Data_Collection
         /// A list of the current ids being scanned on the game
         /// </summary>
         public static List<CurrentScan> CurrGameList = new List<CurrentScan>();
+
+        /// <summary>
+        /// A list of the current ids being scanned on the friend
+        /// </summary>
+        public static List<CurrentScan> CurrFriendList = new List<CurrentScan>(); 
 
         /// <summary>
         /// Tries to update all the things, returns a packet of the first thing to be updated
@@ -33,6 +40,12 @@ namespace Steam_Data_Collection
             if (game.List.Count > 0)
             {
                 return game.Data;
+            }
+
+            var friend = UpdateFriends(true, hostId);
+            if (friend.List.Count > 0)
+            {
+                return friend.Data;
             }
             return new ListOfId(new List<ulong>(), 0, 0, 2000).Data;
         }
@@ -129,6 +142,52 @@ namespace Steam_Data_Collection
         }
 
         /// <summary>
+        /// Gives a list of the steam ids that need friend updates
+        /// </summary>
+        /// <param name="mark">Whether to 'mark' the ids as being searched</param>
+        /// <param name="hostId">The host id of the machine going to be searching</param>
+        /// <returns>A list of ids to be searched through</returns>
+        public static ListOfId UpdateFriends(bool mark, int hostId)
+        {
+            var dt =
+                Program.Select("SELECT PK_SteamId FROM tbl_user WHERE (LastFriendUpdate < NOW() - Interval " +
+                               Program.UpdateInterval +
+                               ") OR LastFriendUpdate is Null AND VisibilityState = 1 ORDER BY LastFriendUpdate;");
+            var listOfIds = new List<UInt64>();
+
+            for (var i = 0; i < dt.Rows.Count; i++)
+            {
+                listOfIds.Add((UInt64)dt.Rows[i][0]);
+            }
+
+            if (mark)
+            {
+                foreach (var t in CurrFriendList)
+                {
+                    listOfIds.Remove(t.SteamId);
+                }
+            }
+            var l = 5;
+
+            if (listOfIds.Count < 5)
+            {
+                l = listOfIds.Count;
+            }
+
+            listOfIds = listOfIds.GetRange(0, l);
+
+            if (mark)
+            {
+                foreach (var id in listOfIds)
+                {
+                    CurrFriendList.Add(new CurrentScan { HostId = hostId, SteamId = id, TimeOfScan = DateTime.Now });
+                }
+            }
+
+            return new ListOfId(listOfIds, 0, 0, 2006);
+        }
+
+        /// <summary>
         /// Deals with the list of users from the client and adds it to the sql server
         /// </summary>
         /// <param name="tempList">The list of users info from the client</param>
@@ -219,6 +278,45 @@ namespace Steam_Data_Collection
                         break;
                     }
                 }
+            }
+        }
+
+        /// <summary>
+        /// Deals with the incoming friend list
+        /// </summary>
+        /// <param name="tempList">A list of users containing the list of friends</param>
+        public static void DealWithFriends(ListOfUsers tempList)
+        {
+            foreach (var user in tempList.List)
+            {
+                
+                var dt =
+                    Program.Select(
+                        "SELECT tbl_friends.PK_UserID, t.PK_UserID AS UserID2 FROM db_steamdata.tbl_friends INNER JOIN ( SELECT * FROM tbl_friends ) t ON tbl_friends.PK_FriendID = t.PK_FriendID WHERE tbl_friends.PK_UserID != t.PK_UserID AND tbl_friends.PK_UserID = '" +
+                        user.SteamId + "';");
+
+                foreach (DataRow row in dt.Rows)
+                {
+                    for (int index = 0; index < user.ListOfFriends.Count; index++)
+                    {
+                        var friend = user.ListOfFriends[index];
+
+                        if (Convert.ToUInt64(row[1]) == friend.SteamId)
+                        {
+                            user.ListOfFriends.RemoveAt(index);
+                            break;
+                        }
+                    }
+                }
+                foreach (var friend in user.ListOfFriends)
+                {
+                    var insert = "INSERT INTO tbl_friends(PK_UserID) VALUES ('" + user.SteamId +
+                              "'); SET @friendid = LAST_INSERT_ID(); INSERT INTO tbl_friends VALUES (@friendid,'" +
+                              friend.SteamId + "');INSERT INTO tbl_frienddate VALUES (@friendid, '" + friend.TimeStamp.ToString("yyyy-MM-dd HH:mm:ss") +
+                              "'); INSERT IGNORE INTO tbl_user SET PK_SteamID = '" + friend.SteamId + "';";
+                    Program.NonQuery(insert);
+                }
+                Program.NonQuery("UPDATE tbl_user SET LastFriendUpdate = '" + user.LastFriendUpdate.ToString("yyyy-MM-dd HH:mm:ss") + "' WHERE PK_SteamID = '" + user.SteamId + "';");
             }
         }
 

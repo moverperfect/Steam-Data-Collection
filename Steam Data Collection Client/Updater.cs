@@ -56,10 +56,18 @@ namespace Steam_Data_Collection_Client
                 switch (new StdData(packet).PacketType)
                 {
                     case 2003:
+                        Console.WriteLine("Updating player summaries");
                         UpdatePlayerSum(new ListOfId(packet).List);
                         break;
+
                     case 2004:
+                        Console.WriteLine("Updating player games");
                         UpdatePlayerGames(new ListOfId(packet).List);
+                        break;
+
+                    case 2006:
+                        Console.WriteLine("Updating player friends");
+                        UpdatePlayerFriends(new ListOfId(packet).List);
                         break;
 
                     default:
@@ -307,16 +315,98 @@ namespace Steam_Data_Collection_Client
             return true;
         }
 
-        private static void UpdatePlayerFriends()
+        public static bool UpdatePlayerFriends(List<ulong> listOfIds)
         {
-        }
+            if (Program.HostId == 0)
+            {
+                Console.Clear();
+                UpdateHostId();
+                Thread.Sleep(1000);
 
-        private static void UpdatePlayerGroups()
-        {
-        }
+                Console.Clear();
+                Console.WriteLine("Server IP: " + Program.IpAddress + "      Port: " + Program.Port + "       HostId: " +
+                                  Program.HostId);
+                Console.WriteLine();
+            }
 
-        private static void UpdateGroups()
-        {
+            if (Program.SteamToken == null)
+            {
+                UpdateSteamToken();
+            }
+
+            // If we have not been given any ids then get some from the server
+            if (listOfIds == null)
+            {
+                Console.WriteLine("Getting the steam ids we need to check from the server");
+                listOfIds = new ListOfId(CustomSocket.StartClient(new StdData("", Program.HostId, 0, 2006).Data)).List;
+            }
+
+            // Exit if we have no id's
+            if (listOfIds.Count == 0)
+            {
+                Console.WriteLine("No users to update");
+                return false;
+            }
+
+            Console.WriteLine("List received of length " + listOfIds.Count);
+
+            var list = new List<User>();
+
+            foreach (var listOfId in listOfIds)
+            {
+                var uri =
+                    "http://api.steampowered.com/ISteamUser/GetFriendList/v0001/?key=" + Program.SteamToken +
+                    "&steamid=" + listOfId
+                    + "&relationship=friend&format=xml";
+
+                Console.WriteLine("Getting the information from steam");
+
+                var s = new XmlReaderSettings { DtdProcessing = DtdProcessing.Ignore };
+                var r = XmlReader.Create(uri, s);
+
+                var temp = new User { SteamId = listOfId, LastFriendUpdate = DateTime.Now };
+
+                var tempFriend = new Friend();
+
+                while (r.Read())
+                {
+                    switch (r.NodeType)
+                    {
+                        case XmlNodeType.Element:
+                            switch (r.Name)
+                            {
+                                case "steamid":
+                                    r.Read();
+                                    tempFriend = new Friend();
+                                    tempFriend.SteamId = Convert.ToUInt64(r.Value);
+                                    break;
+
+                                case "friend_since":
+                                    r.Read();
+                                    tempFriend.TimeStamp = new DateTime(1970, 1, 1).AddSeconds(double.Parse(r.Value));
+                                    break;
+                            }
+                            break;
+
+                        case XmlNodeType.EndElement:
+                            switch (r.Name)
+                            {
+                                case "friend":
+                                    temp.ListOfFriends.Add(tempFriend);
+                                    break;
+                            }
+                            break;
+                    }
+                }
+
+                list.Add(temp);
+            }
+
+            Console.WriteLine("Sending the information back to the server");
+
+            CustomSocket.StartClient(new ListOfUsers(list, Program.HostId, 0, 3006).Data);
+
+            return true;
         }
     }
 }

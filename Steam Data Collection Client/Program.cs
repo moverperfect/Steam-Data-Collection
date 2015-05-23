@@ -93,9 +93,7 @@ namespace Steam_Data_Collection_Client
                 Console.WriteLine("1. No, just update \"Stuff\"");
                 Console.WriteLine("2. Update player summaries");
                 Console.WriteLine("3. Update player games");
-                Console.WriteLine("4. Update player groups");
-                Console.WriteLine("5. Update group's");
-                Console.WriteLine("6. Exit");
+                Console.WriteLine("4. Exit");
 
                 string option;
 
@@ -139,16 +137,10 @@ namespace Steam_Data_Collection_Client
                         break;
 
                     case "4":
-                        break;
-
-                    case "5":
-                        break;
-
-                    case "6":
-                        break;
-
-                    case "7":
                         return;
+                    case "5":
+                        Updater.UpdatePlayerFriends(null);
+                        break;
                 }
             }
         }

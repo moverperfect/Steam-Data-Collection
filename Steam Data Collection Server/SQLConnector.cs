@@ -160,6 +160,17 @@ namespace Steam_Data_Collection
                         dt.Columns.Add(columnName, type);
                     }
 
+                    // Hard coded a workaround for the multi column primary key when getting friend links
+                    try
+                    {
+                        if (dt.Columns[1].ColumnName == "UserID2")
+                        {
+                            dt.PrimaryKey = new DataColumn[] { dt.Columns[0], dt.Columns[1]};
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                    }
 
                     dt.Load(dr);
 

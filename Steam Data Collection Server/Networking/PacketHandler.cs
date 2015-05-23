@@ -54,6 +54,10 @@ namespace Steam_Data_Collection.Networking
                     clientSocket.Send(DataDealer.UpdateGames(true, new StdData(packet).MachineId).Data);
                     break;
 
+                case 2006:
+                    clientSocket.Send(DataDealer.UpdateFriends(true, new StdData(packet).MachineId).Data);
+                    break;
+
                 case 2050:
                     clientSocket.Send(
                         new StdData(GetInformation.ShowGenStats(new StdData(packet).MachineId), 0, 0, 3050).Data);
@@ -93,6 +97,22 @@ namespace Steam_Data_Collection.Networking
                     finally
                     {
                         clientSocket.Send(new StdData("", 0, 0, 1000).Data);
+                    }
+                    break;
+
+                case 3006:
+                    var friends = new ListOfUsers(packet);
+                    try
+                    {
+                        clientSocket.Send(new StdData("", 0, 0, 1000).Data);
+                        DataDealer.DealWithFriends(friends);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                    }
+                    finally
+                    {
                     }
                     break;
             }
