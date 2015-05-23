@@ -91,7 +91,12 @@ namespace Steam_Data_Collection
                 }
                 count++;
             }
-            Console.WriteLine(new ListOfUsers(list, 0, 0, 3051).Data.Length);
+
+            if (list[0].SteamId == 0)
+            {
+                list.RemoveAt(0);
+            }
+
             return list;
         }
     }

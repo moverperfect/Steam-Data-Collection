@@ -170,6 +170,14 @@ namespace Steam_Data_Collection_Client
                     Console.WriteLine("{0}. Exit", i+1);
                     
                 }
+                else
+                {
+                    Console.WriteLine("1. Exit");
+                }
+
+                // Do all of the menu stuff
+                if(Console.ReadLine() == "1")
+                    return;
                 Console.ReadLine();
             }
         }
