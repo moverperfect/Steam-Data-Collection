@@ -13,11 +13,10 @@ namespace Steam_Data_Collection_Client.Networking.Packets
         /// </summary>
         /// <param name="message">The string to be stored</param>
         /// <param name="machineId">Machine id of the machine that created the packet</param>
-        /// <param name="userId">User id of the user who created the packet</param>
-        public StdData(String message, ushort machineId, ushort userId)
-            : base((ushort) (8 + Encoding.UTF8.GetByteCount(message)), machineId, userId)
+        public StdData(String message, ushort machineId)
+            : base((UInt32) (8 + Encoding.UTF8.GetByteCount(message)), machineId)
         {
-            WriteUShort(2000, 2);
+            WriteUShort(2000, 4);
             Text = message;
         }
 
@@ -35,12 +34,11 @@ namespace Steam_Data_Collection_Client.Networking.Packets
         /// </summary>
         /// <param name="message">The string message to be stored</param>
         /// <param name="machineId">The machine id of the machine that created the packet</param>
-        /// <param name="userId">The user id of the user who created the packet</param>
         /// <param name="packetType">The type of the packet see Documentation files/packethandler.cs for details</param>
-        public StdData(String message, ushort machineId, ushort userId, ushort packetType)
-            : base((ushort) (8 + Encoding.UTF8.GetByteCount(message)), machineId, userId)
+        public StdData(String message, ushort machineId, ushort packetType)
+            : base((UInt32) (8 + Encoding.UTF8.GetByteCount(message)), machineId)
         {
-            WriteUShort(packetType, 2);
+            WriteUShort(packetType, 4);
             Text = message;
         }
 
@@ -50,7 +48,7 @@ namespace Steam_Data_Collection_Client.Networking.Packets
         public string Text
         {
             get { return ReadString(8, Data.Length - 8); }
-            set { WriteString(value, 8); }
+            private set { WriteString(value, 8); }
         }
 
         /// <summary>

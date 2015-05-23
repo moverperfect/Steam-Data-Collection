@@ -25,7 +25,7 @@ namespace Steam_Data_Collection_Client.Objects
         /// <summary>
         /// The name of the game
         /// </summary>
-        public string Name { get; set; }
+        public string Name { internal get; set; }
 
         #endregion
     }

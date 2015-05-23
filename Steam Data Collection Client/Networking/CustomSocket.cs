@@ -2,7 +2,6 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
-using System.Windows.Forms.VisualStyles;
 
 namespace Steam_Data_Collection_Client.Networking
 {
@@ -16,7 +15,7 @@ namespace Steam_Data_Collection_Client.Networking
             while (true)
             {
                 // Data buffer for incoming data.
-                var buffer = new byte[2];
+                var buffer = new byte[4];
 
                 // Connect to a remote device.
                 try
@@ -39,28 +38,23 @@ namespace Steam_Data_Collection_Client.Networking
                         var msg = data;
 
                         // Send the data through the socket.
-                        var bytesSent = sender.Send(msg);
+                        sender.Send(msg);
 
                         sender.ReceiveTimeout = 5000;
-                        sender.ReceiveBufferSize = 2;
-                        var bytesRec = sender.Receive(buffer, 2, SocketFlags.None);
+                        sender.ReceiveBufferSize = 4;
+                        sender.Receive(buffer, 4, SocketFlags.None);
 
-                        sender.ReceiveBufferSize = 8192;
+                        sender.ReceiveBufferSize = (int) (BitConverter.ToUInt32(buffer, 0) - 4);
 
-                        while (buffer.Length != BitConverter.ToUInt16(buffer,0))
+                        Array.Resize(ref buffer, (int)BitConverter.ToUInt32(buffer, 0));
+                        var bytesrec = sender.Receive(buffer, 4, buffer.Length - 4, SocketFlags.None);
+
+                        var totalBytesRec = bytesrec + 4;
+
+                        while (totalBytesRec != buffer.Length)
                         {
-                            if ((BitConverter.ToUInt16(buffer, 0) - buffer.Length) < 8192)
-                            {
-                                var length = buffer.Length;
-                                Array.Resize(ref buffer, BitConverter.ToUInt16(buffer, 0));
-                                sender.Receive(buffer, length, buffer.Length - length, SocketFlags.None);
-                            }
-                            else
-                            {
-                                var length = buffer.Length;
-                                Array.Resize(ref buffer, buffer.Length + 8192);
-                                sender.Receive(buffer, length, 8192, SocketFlags.None);
-                            }
+                            totalBytesRec += sender.Receive(buffer, totalBytesRec, buffer.Length - totalBytesRec,
+                                SocketFlags.None);
                         }
 
                         // Receive the response from the remote device.

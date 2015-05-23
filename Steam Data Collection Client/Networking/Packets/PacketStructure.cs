@@ -4,10 +4,9 @@ namespace Steam_Data_Collection_Client.Networking.Packets
 {
     /// <summary>
     /// Standard Packet structure - data in bytes 0-7
-    /// 0-1 - Packet Length
-    /// 2-3 - Packet Type
-    /// 4-5 - Machine ID
-    /// 6-7 - User ID
+    /// 0-3 - Packet Length
+    /// 4-5 - Packet Type
+    /// 6-7 - Machine ID
     /// 
     /// This is the standard packet structure 
     /// </summary>
@@ -23,13 +22,11 @@ namespace Steam_Data_Collection_Client.Networking.Packets
         /// </summary>
         /// <param name="length">The length of the byte array</param>
         /// <param name="machineId">The machine id of the machine that created the packet</param>
-        /// <param name="userId">The user id of the user that created the packet</param>
-        protected PacketStructure(ushort length, ushort machineId, ushort userId)
+        protected PacketStructure(UInt32 length, ushort machineId)
         {
             Buffer = new byte[length];
-            WriteUShort(length, 0);
-            WriteUShort(machineId, 4);
-            WriteUShort(userId, 6);
+            WriteUInt(length, 0);
+            WriteUShort(machineId, 6);
         }
 
         /// <summary>
@@ -61,23 +58,15 @@ namespace Steam_Data_Collection_Client.Networking.Packets
         /// </summary>
         public ushort MachineId
         {
-            get { return ReadUShort(4); }
-        }
-
-        /// <summary>
-        /// Returns the user id property of the packet
-        /// </summary>
-        public ushort UserId
-        {
             get { return ReadUShort(6); }
         }
 
         /// <summary>
         /// Returns the type of the packet
         /// </summary>
-        public ushort PacketType
+        internal ushort PacketType
         {
-            get { return ReadUShort(2); }
+            get { return ReadUShort(4); }
         }
 
         /// <summary>
@@ -85,7 +74,7 @@ namespace Steam_Data_Collection_Client.Networking.Packets
         /// </summary>
         /// <param name="value">The number to be written</param>
         /// <param name="offset">The start point to write the number at</param>
-        public void WriteUShort(ushort value, int offset)
+        protected void WriteUShort(ushort value, int offset)
         {
             var tempBuffer = BitConverter.GetBytes(value);
             Array.Copy(tempBuffer, 0, Buffer, offset, 2);
@@ -96,9 +85,20 @@ namespace Steam_Data_Collection_Client.Networking.Packets
         /// </summary>
         /// <param name="offset">The start point to read from</param>
         /// <returns>The number that is at that point</returns>
-        public ushort ReadUShort(int offset)
+        private ushort ReadUShort(int offset)
         {
             return BitConverter.ToUInt16(Buffer, offset);
+        }
+
+        /// <summary>
+        /// Writes a number to the byte array at an offest start point
+        /// </summary>
+        /// <param name="value">The number to be written</param>
+        /// <param name="offset">The start point to write the number at</param>
+        protected void WriteUInt(UInt32 value, int offset)
+        {
+            var tempBuffer = BitConverter.GetBytes(value);
+            Array.Copy(tempBuffer, 0, Buffer, offset, 4);
         }
     }
 }

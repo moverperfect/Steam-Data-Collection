@@ -65,11 +65,6 @@ namespace Steam_Data_Collection_Client.Objects
         public DateTime LastFriendUpdate { get; set; }
 
         /// <summary>
-        /// The last time that we updated the groups of the suer
-        /// </summary>
-        public DateTime LastGroupUpdate { get; set; }
-
-        /// <summary>
         /// The last time that we updated the games of the user
         /// </summary>
         public DateTime LastGameUpdate { get; set; }
@@ -77,12 +72,12 @@ namespace Steam_Data_Collection_Client.Objects
         /// <summary>
         /// A list of the friends of the user
         /// </summary>
-        public List<Friend> ListOfFriends { get; set; }
+        public List<Friend> ListOfFriends { get; private set; }
 
         /// <summary>
         /// A list of the games that the user owns
         /// </summary>
-        public List<GameHistory> ListOfGames { get; set; }
+        public List<GameHistory> ListOfGames { get; private set; }
 
         #endregion
 

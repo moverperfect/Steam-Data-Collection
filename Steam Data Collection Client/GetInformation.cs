@@ -1,5 +1,4 @@
 ﻿using System;
-using System.CodeDom.Compiler;
 using System.Threading;
 using Steam_Data_Collection_Client.Networking;
 using Steam_Data_Collection_Client.Networking.Packets;
@@ -42,7 +41,7 @@ namespace Steam_Data_Collection_Client
                 Console.WriteLine("Getting the information from the server");
 
                 var information =
-                    new StdData(CustomSocket.StartClient(new StdData("", Program.HostId, 0, 2050).Data)).Text;
+                    new StdData(CustomSocket.StartClient(new StdData("", Program.HostId, 2050).Data)).Text;
 
                 Console.WriteLine(information);
 
@@ -84,7 +83,7 @@ namespace Steam_Data_Collection_Client
 
                 var player = Console.ReadLine();
 
-                var playerInfo = new ListOfUsers(CustomSocket.StartClient(new StdData(player, Program.HostId, 0, 2051).Data));
+                var playerInfo = new ListOfUsers(CustomSocket.StartClient(new StdData(player, Program.HostId, 2051).Data));
 
                 var user = new User();
 
@@ -109,7 +108,7 @@ namespace Steam_Data_Collection_Client
                                         return;
                                     }
                                 }
-                                CustomSocket.StartClient(new StdData(steamId.ToString(), Program.HostId, 0, 4000).Data);
+                                CustomSocket.StartClient(new StdData(steamId.ToString(), Program.HostId, 4000).Data);
                                 Console.WriteLine(
                                     "The user has been entered into the database, may take a little while to start getting information about the new user");
                                 Console.WriteLine("Returning in 5 seconds");
@@ -129,14 +128,14 @@ namespace Steam_Data_Collection_Client
 
                     default:
                         Console.WriteLine("Multiple users have been detected, please select the one that you would like");
-                        for (int i = 0; i < playerInfo.List.Count; i++)
+                        for (var i = 0; i < playerInfo.List.Count; i++)
                         {
                             Console.WriteLine("{0}. {1} {2}", i + 1, playerInfo.List[i].SteamId,
                                 playerInfo.List[i].UserName);
                         }
 
                         var o = Console.ReadLine();
-                        Int16 id = 0;
+                        Int16 id;
                         if (Int16.TryParse(o, out id))
                         {
                             user = playerInfo.List[id - 1];

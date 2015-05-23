@@ -17,9 +17,9 @@ namespace Steam_Data_Collection
             var users = "Number of users: " + Program.Count("SELECT COUNT(PK_SteamId) FROM tbl_user;");
             var friend = "Number of seperate friend relations: " +
                          Program.Count("SELECT COUNT(PK_FriendId) FROM tbl_frienddate;");
-            var gcollectionlink = "Number of seperate full game collections: " +
+            var gcollectionlink = "Number of library screenings: " +
                                   Program.Count("SELECT COUNT(*) FROM tbl_gcollectionlink;");
-            var gcollection = "Number of user/games collected: " +
+            var gcollection = "Number of game screenings: " +
                               Program.Count("SELECT COUNT(*) FROM tbl_gcollection;");
             var games = "Number of games collected: " + Program.Count("SELECT COUNT(*) FROM tbl_games;");
 
@@ -42,8 +42,7 @@ namespace Steam_Data_Collection
                     sid + "' OR tbl_user.UserName = '" + sid + "';");
 
             var count = 0;
-            var list = new List<User>();
-            list.Add(new User());
+            var list = new List<User> {new User()};
             while (count != dt.Rows.Count)
             {
                 if (list[list.Count - 1].SteamId != (ulong) dt.Rows[count][1])

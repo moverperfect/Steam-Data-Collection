@@ -26,13 +26,6 @@ namespace Steam_Data_Collection
             UpdateSettings();
 
             ServerSocket.StartListening();
-
-            while (true)
-            {
-                Console.Clear();
-                Console.WriteLine("Listening..");
-                Console.ReadLine();
-            }
         }
 
         /// <summary>

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Data;
+using System.Linq;
 using Steam_Data_Collection_Client.Networking.Packets;
 
 namespace Steam_Data_Collection
@@ -11,17 +11,17 @@ namespace Steam_Data_Collection
         /// <summary>
         /// A list of the current ids being scanned on the summary
         /// </summary>
-        public static List<CurrentScan> CurrSumList = new List<CurrentScan>();
+        private static readonly List<CurrentScan> CurrSumList = new List<CurrentScan>();
 
         /// <summary>
         /// A list of the current ids being scanned on the game
         /// </summary>
-        public static List<CurrentScan> CurrGameList = new List<CurrentScan>();
+        private static readonly List<CurrentScan> CurrGameList = new List<CurrentScan>();
 
         /// <summary>
         /// A list of the current ids being scanned on the friend
         /// </summary>
-        public static List<CurrentScan> CurrFriendList = new List<CurrentScan>(); 
+        private static readonly List<CurrentScan> CurrFriendList = new List<CurrentScan>(); 
 
         /// <summary>
         /// Tries to update all the things, returns a packet of the first thing to be updated
@@ -43,11 +43,8 @@ namespace Steam_Data_Collection
             }
 
             var friend = UpdateFriends(true, hostId);
-            if (friend.List.Count > 0)
-            {
-                return friend.Data;
-            }
-            return new ListOfId(new List<ulong>(), 0, 0, 2000).Data;
+
+            return friend.List.Count > 0 ? friend.Data : new ListOfId(new List<ulong>(), 0, 2000).Data;
         }
 
         /// <summary>
@@ -92,7 +89,7 @@ namespace Steam_Data_Collection
             }
 
 
-            return new ListOfId(listOfIds, 0, 0, 2003);
+            return new ListOfId(listOfIds, 0, 2003);
         }
 
         /// <summary>
@@ -138,7 +135,7 @@ namespace Steam_Data_Collection
                 }
             }
 
-            return new ListOfId(listOfIds, 0, 0, 2004);
+            return new ListOfId(listOfIds, 0, 2004);
         }
 
         /// <summary>
@@ -184,7 +181,7 @@ namespace Steam_Data_Collection
                 }
             }
 
-            return new ListOfId(listOfIds, 0, 0, 2006);
+            return new ListOfId(listOfIds, 0, 2006);
         }
 
         /// <summary>
@@ -248,15 +245,12 @@ namespace Steam_Data_Collection
                 var insertLink = "INSERT INTO tbl_GCollectionLink VALUES (" + user.SteamId + ", '" +
                                  user.LastGameUpdate.ToString("yyyy-MM-dd HH:mm:ss") + "');";
                 var insertGCollection =
-                    "INSERT INTO tbl_gcollection(`FK_SteamID`,`FK_TimeStamp`,`FK_AppID`,`MinsLast2Weeks`,`MinsOnRecord`) VALUES ";
-                foreach (var game in user.ListOfGames)
-                {
-                    insertGCollection += "('" + user.SteamId + "', '" +
-                                         user.LastGameUpdate.ToString("yyyy-MM-dd HH:mm:ss") + "', '" + game.AppId +
-                                         "', '" + game.Last2Weeks + "', '" +
-                                         game.OnRecord +
-                                         "'),";
-                }
+                    user.ListOfGames.Aggregate(
+                        "INSERT INTO tbl_gcollection(`FK_SteamID`,`FK_TimeStamp`,`FK_AppID`,`MinsLast2Weeks`,`MinsOnRecord`) VALUES ",
+                        (current, game) =>
+                            current +
+                            ("('" + user.SteamId + "', '" + user.LastGameUpdate.ToString("yyyy-MM-dd HH:mm:ss") + "', '" +
+                             game.AppId + "', '" + game.Last2Weeks + "', '" + game.OnRecord + "'),"));
 
                 if (user.ListOfGames.Count == 0)
                 {
@@ -297,7 +291,7 @@ namespace Steam_Data_Collection
 
                 foreach (DataRow row in dt.Rows)
                 {
-                    for (int index = 0; index < user.ListOfFriends.Count; index++)
+                    for (var index = 0; index < user.ListOfFriends.Count; index++)
                     {
                         var friend = user.ListOfFriends[index];
 
@@ -323,7 +317,7 @@ namespace Steam_Data_Collection
         /// <summary>
         /// Holds the information about users we are currently scanning
         /// </summary>
-        public struct CurrentScan
+        private struct CurrentScan
         {
             /// <summary>
             /// The Id of the user we are scanning

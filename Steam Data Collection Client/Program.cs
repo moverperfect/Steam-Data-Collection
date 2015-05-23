@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Threading;
@@ -47,16 +48,7 @@ namespace Steam_Data_Collection_Client
                 Console.WriteLine("3. Options");
                 Console.WriteLine("4. Exit");
 
-                String option;
-
-                if (args.Length == 0)
-                {
-                    option = Console.ReadLine();
-                }
-                else
-                {
-                    option = args[0];
-                }
+                var option = args.Length == 0 ? Console.ReadLine() : args[0];
 
                 switch (option)
                 {
@@ -73,8 +65,7 @@ namespace Steam_Data_Collection_Client
                         break;
 
                     case "4":
-                        Environment.Exit(0);
-                        break;
+                        return;
                 }
             }
         }
@@ -82,7 +73,7 @@ namespace Steam_Data_Collection_Client
         /// <summary>
         /// Displays and controls the "Be a slave" menu
         /// </summary>
-        private static void SlaveMenu(string[] args)
+        private static void SlaveMenu(IList<string> args)
         {
             while (true)
             {
@@ -95,16 +86,7 @@ namespace Steam_Data_Collection_Client
                 Console.WriteLine("3. Update player games");
                 Console.WriteLine("4. Exit");
 
-                string option;
-
-                if (args.Length < 2)
-                {
-                    option = Console.ReadLine();
-                }
-                else
-                {
-                    option = args[1];
-                }
+                var option = args.Count < 2 ? Console.ReadLine() : args[1];
 
                 switch (option)
                 {
@@ -138,8 +120,17 @@ namespace Steam_Data_Collection_Client
 
                     case "4":
                         return;
+
                     case "5":
-                        Updater.UpdatePlayerFriends(null);
+                        while (Console.KeyAvailable == false)
+                        {
+                            if (Updater.UpdatePlayerFriends(null) == false)
+                            {
+                                Console.WriteLine("There are no users to update trying again in 30 seconds");
+                                Thread.Sleep(30000);
+                            }
+                            Thread.Sleep(500);
+                        }
                         break;
                 }
             }

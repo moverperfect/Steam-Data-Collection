@@ -18,15 +18,13 @@ namespace Steam_Data_Collection_Client.Networking.Packets
         /// </summary>
         /// <param name="tmpList">The list to be stored</param>
         /// <param name="machineId">The machine id of the host machine</param>
-        /// <param name="userId">The user id of the user, unused</param>
         /// <param name="packetType">The type of packet that this is</param>
-        public ListOfUsers(List<User> tmpList, ushort machineId, ushort userId, ushort packetType)
+        public ListOfUsers(List<User> tmpList, ushort machineId, ushort packetType)
         {
             List = tmpList;
             ListToByteArray(tmpList);
-            WriteUShort(packetType, 2);
-            WriteUShort(machineId, 4);
-            WriteUShort(userId, 6);
+            WriteUShort(packetType, 4);
+            WriteUShort(machineId, 6);
         }
 
         /// <summary>
@@ -66,7 +64,7 @@ namespace Steam_Data_Collection_Client.Networking.Packets
         /// Turns a List into a byte array
         /// </summary>
         /// <param name="tmpList"></param>
-        public void ListToByteArray(List<User> tmpList)
+        private void ListToByteArray(List<User> tmpList)
         {
             byte[] binaryDataResult;
             // Serializing the List using a binaryformmatter to memorystream to byte array
@@ -78,7 +76,7 @@ namespace Steam_Data_Collection_Client.Networking.Packets
             }
             // Add the length metadata to the byte array
             Buffer = new Byte[binaryDataResult.Length + 8];
-            WriteUShort((ushort) Buffer.Length, 0);
+            WriteUInt((UInt32) Buffer.Length, 0);
             Array.Copy(binaryDataResult, 0, Buffer, 8, binaryDataResult.Length);
         }
 
@@ -86,7 +84,7 @@ namespace Steam_Data_Collection_Client.Networking.Packets
         /// Turns the byte array into a List
         /// </summary>
         /// <param name="arrayBytes">The byte array to be turned into a list</param>
-        public void ByteArrayToList(Byte[] arrayBytes)
+        private void ByteArrayToList(Byte[] arrayBytes)
         {
             Buffer = arrayBytes;
             List<User> list;

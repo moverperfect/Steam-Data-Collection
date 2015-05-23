@@ -15,7 +15,7 @@ namespace Steam_Data_Collection_Client
         /// </summary>
         public static void UpdateHostId()
         {
-            var msg = new StdData("", Program.HostId, 0, 2001);
+            var msg = new StdData("", Program.HostId, 2001);
             var rec = new StdData(CustomSocket.StartClient(msg.Data));
             if (rec.PacketType == 2001)
             {
@@ -28,9 +28,9 @@ namespace Steam_Data_Collection_Client
         /// <summary>
         /// Update the steam token of the program used to communicate with steam
         /// </summary>
-        public static void UpdateSteamToken()
+        private static void UpdateSteamToken()
         {
-            var msg = new StdData("", Program.HostId, 0, 2000);
+            var msg = new StdData("", Program.HostId, 2000);
             var rec = new StdData(CustomSocket.StartClient(msg.Data));
             if (rec.PacketType == 2000)
             {
@@ -46,12 +46,12 @@ namespace Steam_Data_Collection_Client
             UpdateHostId();
             UpdateSteamToken();
             Console.Clear();
-            while (true)
+            while (Console.KeyAvailable == false)
             {
                 Thread.Sleep(1000);
                 Console.WriteLine("Server IP: " + Program.IpAddress + "      Port: " + Program.Port + "       HostId: " +
                                   Program.HostId);
-                var packet = CustomSocket.StartClient(new StdData("", Program.HostId, 0, 2002).Data);
+                var packet = CustomSocket.StartClient(new StdData("", Program.HostId, 2002).Data);
 
                 switch (new StdData(packet).PacketType)
                 {
@@ -88,6 +88,11 @@ namespace Steam_Data_Collection_Client
                 Console.Clear();
                 UpdateHostId();
                 Thread.Sleep(1000);
+
+                Console.Clear();
+                Console.WriteLine("Server IP: " + Program.IpAddress + "      Port: " + Program.Port + "       HostId: " +
+                                  Program.HostId);
+                Console.WriteLine();
             }
 
             if (Program.SteamToken == null)
@@ -95,16 +100,11 @@ namespace Steam_Data_Collection_Client
                 UpdateSteamToken();
             }
 
-            Console.Clear();
-            Console.WriteLine("Server IP: " + Program.IpAddress + "      Port: " + Program.Port + "       HostId: " +
-                              Program.HostId);
-            Console.WriteLine();
-
             // If we have not been given any ids then get some from the server
             if (listOfIds == null)
             {
                 Console.WriteLine("Getting the steam ids we need to check from the server");
-                listOfIds = new ListOfId(CustomSocket.StartClient(new StdData("", Program.HostId, 0, 2003).Data)).List;
+                listOfIds = new ListOfId(CustomSocket.StartClient(new StdData("", Program.HostId, 2003).Data)).List;
             }
 
             // Exit if we have no id's
@@ -166,14 +166,9 @@ namespace Steam_Data_Collection_Client
 
                             case "profileurl":
                                 r.Read();
-                                if (r.Value.Split('/')[3] == "id")
-                                {
-                                    people[people.Count - 1].CustomUrl = r.Value.Split('/')[4];
-                                }
-                                else
-                                {
-                                    people[people.Count - 1].CustomUrl = "/";
-                                }
+                                people[people.Count - 1].CustomUrl = r.Value.Split('/')[3] == "id"
+                                    ? r.Value.Split('/')[4]
+                                    : "/";
                                 break;
 
                             case "realname":
@@ -203,7 +198,7 @@ namespace Steam_Data_Collection_Client
 
             Console.WriteLine("Sending the information back to the server");
 
-            CustomSocket.StartClient(new ListOfUsers(people, Program.HostId, 0, 3003).Data);
+            CustomSocket.StartClient(new ListOfUsers(people, Program.HostId, 3003).Data);
 
             return true;
         }
@@ -236,7 +231,7 @@ namespace Steam_Data_Collection_Client
             if (listOfIds == null)
             {
                 Console.WriteLine("Getting the steam ids we need to check from the server");
-                listOfIds = new ListOfId(CustomSocket.StartClient(new StdData("", Program.HostId, 0, 2004).Data)).List;
+                listOfIds = new ListOfId(CustomSocket.StartClient(new StdData("", Program.HostId, 2004).Data)).List;
             }
 
             // Exit if we have no id's
@@ -310,7 +305,7 @@ namespace Steam_Data_Collection_Client
 
             Console.WriteLine("Sending the information back to the server");
 
-            CustomSocket.StartClient(new ListOfUsers(list, Program.HostId, 0, 3004).Data);
+            CustomSocket.StartClient(new ListOfUsers(list, Program.HostId, 3004).Data);
 
             return true;
         }
@@ -338,7 +333,7 @@ namespace Steam_Data_Collection_Client
             if (listOfIds == null)
             {
                 Console.WriteLine("Getting the steam ids we need to check from the server");
-                listOfIds = new ListOfId(CustomSocket.StartClient(new StdData("", Program.HostId, 0, 2006).Data)).List;
+                listOfIds = new ListOfId(CustomSocket.StartClient(new StdData("", Program.HostId, 2006).Data)).List;
             }
 
             // Exit if we have no id's
@@ -377,8 +372,7 @@ namespace Steam_Data_Collection_Client
                             {
                                 case "steamid":
                                     r.Read();
-                                    tempFriend = new Friend();
-                                    tempFriend.SteamId = Convert.ToUInt64(r.Value);
+                                    tempFriend = new Friend {SteamId = Convert.ToUInt64(r.Value)};
                                     break;
 
                                 case "friend_since":
@@ -404,7 +398,7 @@ namespace Steam_Data_Collection_Client
 
             Console.WriteLine("Sending the information back to the server");
 
-            CustomSocket.StartClient(new ListOfUsers(list, Program.HostId, 0, 3006).Data);
+            CustomSocket.StartClient(new ListOfUsers(list, Program.HostId, 3006).Data);
 
             return true;
         }

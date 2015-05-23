@@ -17,12 +17,10 @@ namespace Steam_Data_Collection.Networking
         public static void Handle(byte[] packet, Socket clientSocket)
         {
             // Get the packet length and type
-            var packetLength = BitConverter.ToUInt16(packet, 0);
-            var packetType = BitConverter.ToUInt16(packet, 2);
+            var packetLength = BitConverter.ToUInt32(packet, 0);
+            var packetType = BitConverter.ToUInt16(packet, 4);
 
             Console.WriteLine("Recieved packet of length: {0} and Type: {1}", packetLength, packetType);
-
-            SqlConnecter connecter;
 
             // Packet types:
             // 2000 - Update the steam token
@@ -34,12 +32,11 @@ namespace Steam_Data_Collection.Networking
             switch (packetType)
             {
                 case 2000:
-                    clientSocket.Send(new StdData(Program.SteamToken, 0, 0, 2000).Data);
+                    clientSocket.Send(new StdData(Program.SteamToken, 0, 2000).Data);
                     break;
 
                 case 2001:
-                    Console.WriteLine(new StdData("21", 0, 0, 2001).Data);
-                    clientSocket.Send(new StdData("21", 0, 0, 2001).Data);
+                    clientSocket.Send(new StdData("21", 0, 2001).Data);
                     break;
 
                 case 2002:
@@ -60,12 +57,12 @@ namespace Steam_Data_Collection.Networking
 
                 case 2050:
                     clientSocket.Send(
-                        new StdData(GetInformation.ShowGenStats(new StdData(packet).MachineId), 0, 0, 3050).Data);
+                        new StdData(GetInformation.ShowGenStats(new StdData(packet).MachineId), 0, 3050).Data);
                     break;
 
                 case 2051:
                     clientSocket.Send(
-                        new ListOfUsers(GetInformation.ShowPlayerStats(new StdData(packet)), 0, 0, 3051).Data);
+                        new ListOfUsers(GetInformation.ShowPlayerStats(new StdData(packet)), 0, 3051).Data);
                     break;
 
                 case 3003:
@@ -80,7 +77,7 @@ namespace Steam_Data_Collection.Networking
                     }
                     finally
                     {
-                        clientSocket.Send(new StdData("", 0, 0, 1000).Data);
+                        clientSocket.Send(new StdData("", 0, 1000).Data);
                     }
                     break;
 
@@ -96,7 +93,7 @@ namespace Steam_Data_Collection.Networking
                     }
                     finally
                     {
-                        clientSocket.Send(new StdData("", 0, 0, 1000).Data);
+                        clientSocket.Send(new StdData("", 0, 1000).Data);
                     }
                     break;
 
@@ -104,15 +101,12 @@ namespace Steam_Data_Collection.Networking
                     var friends = new ListOfUsers(packet);
                     try
                     {
-                        clientSocket.Send(new StdData("", 0, 0, 1000).Data);
+                        clientSocket.Send(new StdData("", 0, 1000).Data);
                         DataDealer.DealWithFriends(friends);
                     }
                     catch (Exception ex)
                     {
                         Console.WriteLine(ex.Message);
-                    }
-                    finally
-                    {
                     }
                     break;
             }

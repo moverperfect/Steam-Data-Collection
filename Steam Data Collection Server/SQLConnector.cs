@@ -24,18 +24,6 @@ namespace Steam_Data_Collection
         }
 
         /// <summary>
-        /// Creates a database object with defined properties
-        /// </summary>
-        /// <param name="db">Database name</param>
-        /// <param name="server">Sever location</param>
-        /// <param name="uid">User ID</param>
-        /// <param name="password">Password for user</param>
-        public SqlConnecter(String db, String server, String uid, String password)
-        {
-            Initialize(db, server, uid, password);
-        }
-
-        /// <summary>
         /// Initializes the SQL connection object
         /// </summary>
         private void Initialize(String database, String server, String uid, String password)
@@ -165,10 +153,10 @@ namespace Steam_Data_Collection
                     {
                         if (dt.Columns[1].ColumnName == "UserID2")
                         {
-                            dt.PrimaryKey = new DataColumn[] { dt.Columns[0], dt.Columns[1]};
+                            dt.PrimaryKey = new[] { dt.Columns[0], dt.Columns[1]};
                         }
                     }
-                    catch (Exception ex)
+                    catch
                     {
                     }
 

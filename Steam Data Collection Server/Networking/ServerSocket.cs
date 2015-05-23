@@ -12,24 +12,21 @@ namespace Steam_Data_Collection.Networking
         // Size of receive buffer.
         public const int BufferSize = 1024;
         // Receive buffer.
-        public byte[] Buffer = new byte[BufferSize];
+        public readonly byte[] Buffer = new byte[BufferSize];
         // Received data string.
         public byte[] Data = new byte[0];
-        public Socket WorkSocket = null;
+        public Socket WorkSocket;
     }
 
     /// <summary>
     /// A custom built socket to handle any incoming data or connections
     /// </summary>
-    internal class ServerSocket
+    internal static class ServerSocket
     {
-        public static ManualResetEvent allDone = new ManualResetEvent(false);
+        private static readonly ManualResetEvent AllDone = new ManualResetEvent(false);
 
         public static void StartListening()
         {
-            // Data buffer for incoming data.
-            var bytes = new Byte[1024];
-
             // Create a TCP/IP socket.
             var listener = new Socket(AddressFamily.InterNetwork,
                 SocketType.Stream, ProtocolType.Tcp);
@@ -43,7 +40,7 @@ namespace Steam_Data_Collection.Networking
                 while (true)
                 {
                     // Set the event to nonsignaled state.
-                    allDone.Reset();
+                    AllDone.Reset();
 
                     // Start an asynchronous socket to listen for connections.
                     listener.BeginAccept(
@@ -51,7 +48,7 @@ namespace Steam_Data_Collection.Networking
                         listener);
 
                     // Wait until a connection is made before continuing.
-                    allDone.WaitOne();
+                    AllDone.WaitOne();
                 }
             }
             catch (Exception e)
@@ -60,23 +57,22 @@ namespace Steam_Data_Collection.Networking
             }
         }
 
-        public static void AcceptCallback(IAsyncResult ar)
+        private static void AcceptCallback(IAsyncResult ar)
         {
             // Signal the main thread to continue.
-            allDone.Set();
+            AllDone.Set();
 
             // Get the socket that handles the client request.
             var listener = (Socket) ar.AsyncState;
             var handler = listener.EndAccept(ar);
 
             // Create the state object.
-            var state = new StateObject();
-            state.WorkSocket = handler;
+            var state = new StateObject {WorkSocket = handler};
             handler.BeginReceive(state.Buffer, 0, StateObject.BufferSize, 0,
                 ReadCallback, state);
         }
 
-        public static void ReadCallback(IAsyncResult ar)
+        private static void ReadCallback(IAsyncResult ar)
         {
             // Retrieve the state object and the handler socket
             // from the asynchronous state object.
@@ -97,14 +93,14 @@ namespace Steam_Data_Collection.Networking
                     Array.Copy(state.Buffer, 0, temp, state.Data.Length, bytesRead);
                     state.Data = temp;
 
-                    if (state.Data.Length != BitConverter.ToUInt16(state.Data, 0) && bytesRead != 0)
+                    if (state.Data.Length != BitConverter.ToUInt32(state.Data, 0) && bytesRead != 0)
                     {
                         handler.BeginReceive(state.Buffer, 0, StateObject.BufferSize, 0, ReadCallback, state);
                         return;
                     }
 
                     
-                        PacketHandler.Handle(state.Data, state.WorkSocket);
+                    PacketHandler.Handle(state.Data, state.WorkSocket);
                     
                     state.WorkSocket.Close();
                 }
