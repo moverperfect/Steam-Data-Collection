@@ -101,7 +101,7 @@ namespace Steam_Data_Collection.Networking
                     var friends = new ListOfUsers(packet);
                     try
                     {
-                        clientSocket.Send(new StdData("", 0, 1000).Data);
+                        clientSocket.Send(new StdData("", 0, 1005).Data);
                         DataDealer.DealWithFriends(friends);
                     }
                     catch (Exception ex)

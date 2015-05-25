@@ -40,7 +40,7 @@ namespace Steam_Data_Collection_Client.Networking
                         // Send the data through the socket.
                         sender.Send(msg);
 
-                        sender.ReceiveTimeout = 5000;
+                        sender.ReceiveTimeout = 30000;
                         sender.ReceiveBufferSize = 4;
                         sender.Receive(buffer, 4, SocketFlags.None);
 
@@ -55,6 +55,12 @@ namespace Steam_Data_Collection_Client.Networking
                         {
                             totalBytesRec += sender.Receive(buffer, totalBytesRec, buffer.Length - totalBytesRec,
                                 SocketFlags.None);
+                        }
+
+                        if (BitConverter.ToUInt16(buffer, 4) == 1005)
+                        {
+                            sender.ReceiveTimeout = 0;
+                            sender.Receive(buffer, SocketFlags.None);
                         }
 
                         // Receive the response from the remote device.
@@ -87,6 +93,7 @@ namespace Steam_Data_Collection_Client.Networking
                 catch (Exception e)
                 {
                     Console.WriteLine(e.Message);
+                    Console.WriteLine(e.StackTrace);
                 }
                 Thread.Sleep(500);
             }
