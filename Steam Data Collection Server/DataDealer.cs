@@ -208,10 +208,10 @@ namespace Steam_Data_Collection
                 {
                     if (user.RealName != null)
                     {
-                        update += ", RealName = '" + ChangeString(user.RealName.Replace("\\", "\\\\")
+                        update += ", RealName = '" + ChangeString(user.RealName).Replace("\\", "\\\\")
                             .Replace("'", "\\\'")
                             .Replace("＇", "\\＇")
-                            .Replace("＼", "\\＼").Replace("ˈ", "\\ˈ").Replace("ˈ", "\\ˈ")) + "'";
+                            .Replace("＼", "\\＼").Replace("ˈ", "\\ˈ").Replace("ˈ", "\\ˈ") + "'";
                     }
 
                     update += ", PrimaryClanID = '" + user.PrimaryClanId +
