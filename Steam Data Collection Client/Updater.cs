@@ -254,53 +254,60 @@ namespace Steam_Data_Collection_Client
 
                 Console.WriteLine("Getting the information from steam");
 
-                var s = new XmlReaderSettings {DtdProcessing = DtdProcessing.Ignore};
-                var r = XmlReader.Create(uri, s);
-
-                var temp = new User {SteamId = listOfId, LastGameUpdate = DateTime.Now};
-
-                var tempGame = new GameHistory();
-
-                while (r.Read())
+                try
                 {
-                    switch (r.NodeType)
+                    var s = new XmlReaderSettings {DtdProcessing = DtdProcessing.Ignore};
+                    var r = XmlReader.Create(uri, s);
+
+                    var temp = new User {SteamId = listOfId, LastGameUpdate = DateTime.Now};
+
+                    var tempGame = new GameHistory();
+
+                    while (r.Read())
                     {
-                        case XmlNodeType.Element:
-                            switch (r.Name)
-                            {
-                                case "message":
-                                    tempGame = new GameHistory();
-                                    break;
+                        switch (r.NodeType)
+                        {
+                            case XmlNodeType.Element:
+                                switch (r.Name)
+                                {
+                                    case "message":
+                                        tempGame = new GameHistory();
+                                        break;
 
-                                case "appid":
-                                    r.Read();
-                                    tempGame.AppId = Convert.ToInt32(r.Value);
-                                    break;
+                                    case "appid":
+                                        r.Read();
+                                        tempGame.AppId = Convert.ToInt32(r.Value);
+                                        break;
 
-                                case "playtime_forever":
-                                    r.Read();
-                                    tempGame.OnRecord = Convert.ToInt32(r.Value);
-                                    break;
+                                    case "playtime_forever":
+                                        r.Read();
+                                        tempGame.OnRecord = Convert.ToInt32(r.Value);
+                                        break;
 
-                                case "playtime_2weeks":
-                                    r.Read();
-                                    tempGame.Last2Weeks = Convert.ToInt32(r.Value);
-                                    break;
-                            }
-                            break;
+                                    case "playtime_2weeks":
+                                        r.Read();
+                                        tempGame.Last2Weeks = Convert.ToInt32(r.Value);
+                                        break;
+                                }
+                                break;
 
-                        case XmlNodeType.EndElement:
-                            switch (r.Name)
-                            {
-                                case "message":
-                                    temp.ListOfGames.Add(tempGame);
-                                    break;
-                            }
-                            break;
+                            case XmlNodeType.EndElement:
+                                switch (r.Name)
+                                {
+                                    case "message":
+                                        temp.ListOfGames.Add(tempGame);
+                                        break;
+                                }
+                                break;
+                        }
                     }
-                }
 
-                list.Add(temp);
+                    list.Add(temp);
+                }
+                catch(Exception exception)
+                {
+                    Console.WriteLine(exception.Message);
+                }
             }
 
             Console.WriteLine("Sending the information back to the server");
@@ -355,45 +362,51 @@ namespace Steam_Data_Collection_Client
                     + "&relationship=friend&format=xml";
 
                 Console.WriteLine("Getting the information from steam");
-
-                var s = new XmlReaderSettings { DtdProcessing = DtdProcessing.Ignore };
-                var r = XmlReader.Create(uri, s);
-
-                var temp = new User { SteamId = listOfId, LastFriendUpdate = DateTime.Now };
-
-                var tempFriend = new Friend();
-
-                while (r.Read())
+                try
                 {
-                    switch (r.NodeType)
+                    var s = new XmlReaderSettings { DtdProcessing = DtdProcessing.Ignore };
+                    var r = XmlReader.Create(uri, s);
+
+                    var temp = new User { SteamId = listOfId, LastFriendUpdate = DateTime.Now };
+
+                    var tempFriend = new Friend();
+
+                    while (r.Read())
                     {
-                        case XmlNodeType.Element:
-                            switch (r.Name)
-                            {
-                                case "steamid":
-                                    r.Read();
-                                    tempFriend = new Friend {SteamId = Convert.ToUInt64(r.Value)};
-                                    break;
+                        switch (r.NodeType)
+                        {
+                            case XmlNodeType.Element:
+                                switch (r.Name)
+                                {
+                                    case "steamid":
+                                        r.Read();
+                                        tempFriend = new Friend { SteamId = Convert.ToUInt64(r.Value) };
+                                        break;
 
-                                case "friend_since":
-                                    r.Read();
-                                    tempFriend.TimeStamp = new DateTime(1970, 1, 1).AddSeconds(double.Parse(r.Value));
-                                    break;
-                            }
-                            break;
+                                    case "friend_since":
+                                        r.Read();
+                                        tempFriend.TimeStamp = new DateTime(1970, 1, 1).AddSeconds(double.Parse(r.Value));
+                                        break;
+                                }
+                                break;
 
-                        case XmlNodeType.EndElement:
-                            switch (r.Name)
-                            {
-                                case "friend":
-                                    temp.ListOfFriends.Add(tempFriend);
-                                    break;
-                            }
-                            break;
+                            case XmlNodeType.EndElement:
+                                switch (r.Name)
+                                {
+                                    case "friend":
+                                        temp.ListOfFriends.Add(tempFriend);
+                                        break;
+                                }
+                                break;
+                        }
                     }
-                }
 
-                list.Add(temp);
+                    list.Add(temp);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                }
             }
 
             Console.WriteLine("Sending the information back to the server");
