@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Text;
 using Steam_Data_Collection_Client.Networking.Packets;
 
 namespace Steam_Data_Collection
@@ -44,7 +45,9 @@ namespace Steam_Data_Collection
 
             var friend = UpdateFriends(true, hostId);
 
-            return friend.List.Count > 0 ? friend.Data : new ListOfId(new List<ulong>(), 0, 2000).Data;
+            if (friend.List.Count > 0) return friend.Data;
+
+            return new ListOfId(new List<ulong>(), 0, 2000).Data;
         }
 
         /// <summary>
@@ -113,7 +116,7 @@ namespace Steam_Data_Collection
 
             if (mark)
             {
-                foreach (var t in CurrGameList)
+                foreach (var t in CurrGameList.ToList())
                 {
                     listOfIds.Remove(t.SteamId);
                 }
@@ -159,7 +162,7 @@ namespace Steam_Data_Collection
 
             if (mark)
             {
-                foreach (var t in CurrFriendList)
+                foreach (var t in CurrFriendList.ToList())
                 {
                     listOfIds.Remove(t.SteamId);
                 }
@@ -194,7 +197,10 @@ namespace Steam_Data_Collection
             {
                 var update = "UPDATE tbl_User SET VisibilityState = " + ((user.VisibilityState) ? 1 : 0) +
                              ", UserName = '" +
-                             user.UserName.Replace("'", "\\\'") + "', LastLogOff = '" +
+                             ChangeString(user.UserName).Replace("\\", "\\\\")
+                                 .Replace("'", "\\\'")
+                                 .Replace("＇", "\\＇")
+                                 .Replace("＼", "\\＼").Replace("ˈ", "\\ˈ").Replace("ˈ", "\\ˈ") + "', LastLogOff = '" +
                              user.LastLogOff.ToString("yyyy-MM-dd HH:mm:ss") + "', CustomURL = '" + user.CustomUrl +
                              "', LastSummaryUpdate = '" + user.LastSummaryUpdate.ToString("yyyy-MM-dd HH:mm:ss") + "'";
 
@@ -202,7 +208,10 @@ namespace Steam_Data_Collection
                 {
                     if (user.RealName != null)
                     {
-                        update += ", RealName = '" + user.RealName.Replace("'", "\\\'") + "'";
+                        update += ", RealName = '" + ChangeString(user.RealName.Replace("\\", "\\\\")
+                            .Replace("'", "\\\'")
+                            .Replace("＇", "\\＇")
+                            .Replace("＼", "\\＼").Replace("ˈ", "\\ˈ").Replace("ˈ", "\\ˈ")) + "'";
                     }
 
                     update += ", PrimaryClanID = '" + user.PrimaryClanId +
@@ -312,6 +321,20 @@ namespace Steam_Data_Collection
                 }
                 Program.NonQuery("UPDATE tbl_user SET LastFriendUpdate = '" + user.LastFriendUpdate.ToString("yyyy-MM-dd HH:mm:ss") + "' WHERE PK_SteamID = '" + user.SteamId + "';");
             }
+        }
+
+        /// <summary>
+        /// Changes a string into a 'latin1' string
+        /// </summary>
+        /// <param name="msg">The string to be changed</param>
+        /// <returns>A latin1 parsed string</returns>
+        public static String ChangeString(String msg)
+        {
+            var iso = Encoding.GetEncoding("ISO-8859-1");
+            var utf8 = Encoding.UTF8;
+            var utfBytes = utf8.GetBytes(msg);
+            var isoBytes = Encoding.Convert(utf8, iso, utfBytes);
+            return iso.GetString(isoBytes);
         }
 
         /// <summary>
