@@ -250,7 +250,7 @@ namespace Steam_Data_Collection_Client
                 var uri =
                     "http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key=" + Program.SteamToken +
                     "&steamid=" + listOfId
-                    + "&format=xml";
+                    + "&include_played_free_games=1&format=xml";
 
                 Console.WriteLine("Getting the information from steam");
 
@@ -317,6 +317,11 @@ namespace Steam_Data_Collection_Client
             return true;
         }
 
+        /// <summary>
+        /// Updates a list of players friends
+        /// </summary>
+        /// <param name="listOfIds">A list of players, can be null</param>
+        /// <returns>Were there any from the server</returns>
         public static bool UpdatePlayerFriends(List<ulong> listOfIds)
         {
             if (Program.HostId == 0)
@@ -412,6 +417,101 @@ namespace Steam_Data_Collection_Client
             Console.WriteLine("Sending the information back to the server");
 
             CustomSocket.StartClient(new ListOfUsers(list, Program.HostId, 3006).Data);
+
+            return true;
+        }
+
+        /// <summary>
+        /// Updates the names of games
+        /// </summary>
+        /// <param name="listOfIds">A list of the ids of the game</param>
+        /// <returns>Were there any games that need to be updated</returns>
+        public static bool UpdateGameNames(List<ulong> listOfIds)
+        {
+            if (Program.HostId == 0)
+            {
+                Console.Clear();
+                UpdateHostId();
+                Thread.Sleep(1000);
+
+                Console.Clear();
+                Console.WriteLine("Server IP: " + Program.IpAddress + "      Port: " + Program.Port + "       HostId: " +
+                                  Program.HostId);
+                Console.WriteLine();
+            }
+
+            if (Program.SteamToken == null)
+            {
+                UpdateSteamToken();
+            }
+
+            // If we have not been given any ids then get some from the server
+            if (listOfIds == null)
+            {
+                Console.WriteLine("Getting the game ids we need to check from the server");
+                listOfIds = new ListOfId(CustomSocket.StartClient(new StdData("", Program.HostId, 2007).Data)).List;
+            }
+
+            // Exit if we have no id's
+            if (listOfIds.Count == 0)
+            {
+                Console.WriteLine("No games to update");
+                return false;
+            }
+
+            Console.WriteLine("List received of length " + listOfIds.Count);
+
+            var list = new List<GameHistory>();
+
+            foreach (var listOfId in listOfIds)
+            {
+                var uri =
+                    "http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key=" + Program.SteamToken +
+                    "&steamid=" + listOfId
+                    + "&include_played_free_games=1&include_appinfo=1&format=xml";
+
+                Console.WriteLine("Getting the information from steam");
+                try
+                {
+                    var s = new XmlReaderSettings { DtdProcessing = DtdProcessing.Ignore };
+                    var r = XmlReader.Create(uri, s);
+
+                    var temp = new GameHistory();
+
+                    while (r.Read())
+                    {
+                        switch (r.NodeType)
+                        {
+                            case XmlNodeType.Element:
+                                switch (r.Name)
+                                {
+                                    case "appid":
+                                        r.Read();
+                                        temp = new GameHistory();
+                                        temp.AppId = Convert.ToInt32(r.Value);
+                                        break;
+
+                                    case "name":
+                                        r.Read();
+                                        temp.Name = r.Value;
+                                        list.Add(temp);
+                                        continue;
+                                }
+                                break;
+                        }
+                    }
+
+                    list.Add(temp);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                }
+            }
+
+            Console.WriteLine("Sending the information back to the server");
+
+            CustomSocket.StartClient(new ListOfGames(list, Program.HostId, 3007).Data);
 
             return true;
         }

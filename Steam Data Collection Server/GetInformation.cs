@@ -39,7 +39,7 @@ namespace Steam_Data_Collection
                     "SELECT tbl_gcollection.PK_GameHistory, tbl_User.PK_SteamID, UserName, CustomURL, VisibilityState, MemberSince, Location, RealName, LastLogOff, LastSummaryUpdate, LastFriendUpdate, LastGameUpdate, Timestamp, FK_AppId, tbl_games.Name, MinsOnRecord, MinsLast2Weeks FROM tbl_user LEFT JOIN (SELECT tbl_gcollectionlink.PK_SteamID, Timestamp FROM tbl_gcollectionlink RIGHT JOIN tbl_user ON tbl_gcollectionlink.PK_SteamId = tbl_user.PK_SteamID WHERE tbl_user.PK_SteamId = '" +
                     sid + "' OR UserName = '" + sid +
                     "' GROUP BY timestamp ORDER BY timestamp asc) t ON tbl_user.PK_SteamID = t.PK_SteamID LEFT JOIN tbl_gcollection ON t.PK_SteamID = tbl_gcollection.FK_SteamID LEFT JOIN tbl_games ON tbl_gcollection.FK_AppID = tbl_games.PK_AppID WHERE tbl_User.PK_SteamID = '" +
-                    sid + "' OR tbl_user.UserName = '" + sid + "';");
+                    sid + "' OR tbl_user.UserName = '" + sid + "' GROUP BY PK_SteamID, FK_AppID;");
 
             var count = 0;
             var list = new List<User> {new User()};

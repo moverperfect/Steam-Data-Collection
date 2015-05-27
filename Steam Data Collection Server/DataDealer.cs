@@ -188,6 +188,27 @@ namespace Steam_Data_Collection
         }
 
         /// <summary>
+        /// Returns a list of a steam user that has a game that needs a game name update
+        /// </summary>
+        /// <param name="hostId">The host id of the machine that requested the data</param>
+        /// <returns>A list of 1 user that can update the names of games</returns>
+        public static ListOfId UpdateGameNames(int hostId)
+        {
+            var dt =
+                Program.Select(
+                    "SELECT PK_SteamID FROM tbl_user RIGHT JOIN tbl_gcollection ON tbl_user.PK_SteamID = tbl_gcollection.FK_SteamID LEFT JOIN tbl_games ON tbl_gcollection.FK_AppID = tbl_games.PK_AppID WHERE PK_AppID is null GROUP BY FK_AppID LIMIT 1;");
+
+            var listOfIds = new List<UInt64>();
+
+            for (var i = 0; i < dt.Rows.Count; i++)
+            {
+                listOfIds.Add((UInt64)dt.Rows[i][0]);
+            }
+
+            return new ListOfId(listOfIds, 0, 2007);
+        }
+
+        /// <summary>
         /// Deals with the list of users from the client and adds it to the sql server
         /// </summary>
         /// <param name="tempList">The list of users info from the client</param>
@@ -321,6 +342,20 @@ namespace Steam_Data_Collection
                 }
                 Program.NonQuery("UPDATE tbl_user SET LastFriendUpdate = '" + user.LastFriendUpdate.ToString("yyyy-MM-dd HH:mm:ss") + "' WHERE PK_SteamID = '" + user.SteamId + "';");
             }
+        }
+
+        public static void DealWithGameNames(ListOfGames tempList)
+        {
+            var update = "INSERT IGNORE INTO tbl_games VALUES ";
+            foreach (var gameHistory in tempList.List)
+            {
+                update += "('" + gameHistory.AppId + "','" + ChangeString(gameHistory.Name).Replace("\\", "\\\\")
+                    .Replace("'", "\\\'")
+                    .Replace("＇", "\\＇")
+                    .Replace("＼", "\\＼").Replace("ˈ", "\\ˈ").Replace("ˈ", "\\ˈ") + "'),";
+            }
+            update = update.TrimEnd(',') + ";";
+            Program.NonQuery(update);
         }
 
         /// <summary>

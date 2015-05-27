@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Data;
+using System.IO;
 using MySql.Data.MySqlClient;
 
 namespace Steam_Data_Collection
@@ -29,7 +30,7 @@ namespace Steam_Data_Collection
         private void Initialize(String database, String server, String uid, String password)
         {
             var connectionString = "SERVER=" + server + ";DATABASE=" + database + ";UID=" + uid + ";PASSWORD=" +
-                                   password + ";Allow User Variables=true";
+                                   password + ";Allow User Variables=true;default command timeout=360";
 
             _connection = new MySqlConnection(connectionString);
         }
@@ -116,6 +117,7 @@ namespace Steam_Data_Collection
             {
                 Console.WriteLine(query);
                 Console.WriteLine(exception);
+                File.AppendAllText("Exceptions.txt",query + "\n" + exception + "\n");
             }
             finally
             {

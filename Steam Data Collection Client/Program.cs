@@ -132,6 +132,18 @@ namespace Steam_Data_Collection_Client
                             Thread.Sleep(500);
                         }
                         break;
+
+                    case "6":
+                        while (Console.KeyAvailable == false)
+                        {
+                            if (Updater.UpdateGameNames(null) == false)
+                            {
+                                Console.WriteLine("There are not more games to update trying again in 30 seconds");
+                                Thread.Sleep(30000);
+                            }
+                            Thread.Sleep(500);
+                        }
+                        break;
                 }
             }
         }

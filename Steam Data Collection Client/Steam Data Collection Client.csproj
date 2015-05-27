@@ -44,6 +44,7 @@
   <ItemGroup>
     <Compile Include="GetInformation.cs" />
     <Compile Include="Networking\CustomSocket.cs" />
+    <Compile Include="Networking\Packets\ListOfGames.cs" />
     <Compile Include="Networking\Packets\ListOfId.cs" />
     <Compile Include="Networking\Packets\ListOfUsers.cs" />
     <Compile Include="Objects\Friend.cs" />

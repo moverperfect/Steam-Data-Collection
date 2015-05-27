@@ -55,14 +55,34 @@ namespace Steam_Data_Collection.Networking
                     clientSocket.Send(DataDealer.UpdateFriends(true, new StdData(packet).MachineId).Data);
                     break;
 
+                case 2007:
+                    try
+                    {
+                        clientSocket.Send(new StdData("", 0, 1005).Data);
+                        clientSocket.Send(DataDealer.UpdateGameNames(new StdData(packet).MachineId).Data);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                    }
+                    break;
+
                 case 2050:
                     clientSocket.Send(
                         new StdData(GetInformation.ShowGenStats(new StdData(packet).MachineId), 0, 3050).Data);
                     break;
 
                 case 2051:
-                    clientSocket.Send(
-                        new ListOfUsers(GetInformation.ShowPlayerStats(new StdData(packet)), 0, 3051).Data);
+                    try
+                    {
+                        clientSocket.Send(new StdData("", 0, 1005).Data);
+                        clientSocket.Send(
+                            new ListOfUsers(GetInformation.ShowPlayerStats(new StdData(packet)), 0, 3051).Data);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                    }
                     break;
 
                 case 3003:
@@ -107,6 +127,22 @@ namespace Steam_Data_Collection.Networking
                     catch (Exception ex)
                     {
                         Console.WriteLine(ex.Message);
+                    }
+                    break;
+
+                case 3007:
+                    var games = new ListOfGames(packet);
+                    try
+                    {
+                        DataDealer.DealWithGameNames(games);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                    }
+                    finally
+                    {
+                        clientSocket.Send(new StdData("", 0, 1000).Data);
                     }
                     break;
             }
