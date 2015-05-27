@@ -128,6 +128,10 @@ namespace Steam_Data_Collection.Networking
                     {
                         Console.WriteLine(ex.Message);
                     }
+                    finally
+                    {
+                        clientSocket.Send(new StdData("", 0, 1000).Data);
+                    }
                     break;
 
                 case 3007:

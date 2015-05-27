@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.IO;
 using System.Linq;
 using System.Text;
 using Steam_Data_Collection_Client.Networking.Packets;
@@ -346,15 +347,14 @@ namespace Steam_Data_Collection
 
         public static void DealWithGameNames(ListOfGames tempList)
         {
-            var update = "INSERT IGNORE INTO tbl_games VALUES ";
+            var update = "";
             foreach (var gameHistory in tempList.List)
             {
-                update += "('" + gameHistory.AppId + "','" + ChangeString(gameHistory.Name).Replace("\\", "\\\\")
+                update += "INSERT IGNORE INTO tbl_games VALUES ('" + gameHistory.AppId + "','" + ChangeString(gameHistory.Name).Replace("\\", "\\\\")
                     .Replace("'", "\\\'")
                     .Replace("＇", "\\＇")
-                    .Replace("＼", "\\＼").Replace("ˈ", "\\ˈ").Replace("ˈ", "\\ˈ") + "'),";
+                    .Replace("＼", "\\＼").Replace("ˈ", "\\ˈ").Replace("ˈ", "\\ˈ") + "');";
             }
-            update = update.TrimEnd(',') + ";";
             Program.NonQuery(update);
         }
 
