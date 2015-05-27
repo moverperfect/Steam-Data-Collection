@@ -41,27 +41,28 @@ namespace Steam_Data_Collection_Client.Networking
                         sender.Send(msg);
 
                         sender.ReceiveTimeout = 30000;
-                        sender.ReceiveBufferSize = 4;
-                        sender.Receive(buffer, 4, SocketFlags.None);
 
-                        sender.ReceiveBufferSize = (int) (BitConverter.ToUInt32(buffer, 0) - 4);
-
-                        Array.Resize(ref buffer, (int)BitConverter.ToUInt32(buffer, 0));
-                        var bytesrec = sender.Receive(buffer, 4, buffer.Length - 4, SocketFlags.None);
-
-                        var totalBytesRec = bytesrec + 4;
-
-                        while (totalBytesRec != buffer.Length)
+                        do
                         {
-                            totalBytesRec += sender.Receive(buffer, totalBytesRec, buffer.Length - totalBytesRec,
-                                SocketFlags.None);
-                        }
+                            sender.ReceiveBufferSize = 4;
+                            sender.Receive(buffer, 4, SocketFlags.None);
 
-                        if (BitConverter.ToUInt16(buffer, 4) == 1005)
-                        {
+                            sender.ReceiveBufferSize = (int) (BitConverter.ToUInt32(buffer, 0) - 4);
+
+                            Array.Resize(ref buffer, (int) BitConverter.ToUInt32(buffer, 0));
+                            var bytesrec = sender.Receive(buffer, 4, buffer.Length - 4, SocketFlags.None);
+
+                            var totalBytesRec = bytesrec + 4;
+
+                            while (totalBytesRec != buffer.Length)
+                            {
+                                totalBytesRec += sender.Receive(buffer, totalBytesRec, buffer.Length - totalBytesRec,
+                                    SocketFlags.None);
+                            }
+
                             sender.ReceiveTimeout = 0;
-                            sender.Receive(buffer, SocketFlags.None);
-                        }
+                        } while (BitConverter.ToUInt16(buffer, 4) == 1005);
+
 
                         // Receive the response from the remote device.
                         //bytesRec = sender.Receive(buffer);
