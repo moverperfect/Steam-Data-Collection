@@ -36,10 +36,10 @@ namespace Steam_Data_Collection
             var sid = user.Text;
             var dt =
                 Program.Select(
-                    "SELECT tbl_gcollection.PK_GameHistory, tbl_User.PK_SteamID, UserName, CustomURL, VisibilityState, MemberSince, Location, RealName, LastLogOff, LastSummaryUpdate, LastFriendUpdate, LastGameUpdate, Timestamp, FK_AppId, tbl_games.Name, MinsOnRecord, MinsLast2Weeks FROM tbl_user LEFT JOIN (SELECT tbl_gcollectionlink.PK_SteamID, Timestamp FROM tbl_gcollectionlink RIGHT JOIN tbl_user ON tbl_gcollectionlink.PK_SteamId = tbl_user.PK_SteamID WHERE tbl_user.PK_SteamId = '" +
-                    sid + "' OR UserName = '" + sid +
-                    "' GROUP BY timestamp ORDER BY timestamp asc) t ON tbl_user.PK_SteamID = t.PK_SteamID LEFT JOIN tbl_gcollection ON t.PK_SteamID = tbl_gcollection.FK_SteamID LEFT JOIN tbl_games ON tbl_gcollection.FK_AppID = tbl_games.PK_AppID WHERE tbl_User.PK_SteamID = '" +
-                    sid + "' OR tbl_user.UserName = '" + sid + "' GROUP BY PK_SteamID, FK_AppID;");
+                    "SELECT tbl_gcollection.pk_gamehistory, tbl_user.pk_steamid, username, customurl, visibilitystate, membersince, location, realname, lastlogoff, lastsummaryupdate, lastfriendupdate, lastgameupdate, timestamp, fk_appid, tbl_games.NAME, minsonrecord, minslast2weeks FROM tbl_user LEFT JOIN (SELECT tbl_gcollectionlink.pk_steamid, timestamp FROM tbl_gcollectionlink RIGHT JOIN tbl_user ON tbl_gcollectionlink.pk_steamid = tbl_user.pk_steamid WHERE  tbl_user.pk_steamid = '" +
+                    sid + "' OR username = '" + sid +
+                    "' GROUP  BY timestamp ORDER  BY timestamp ASC) t ON tbl_user.pk_steamid = t.pk_steamid LEFT JOIN tbl_gcollection ON t.pk_steamid = tbl_gcollection.fk_steamid AND t.timestamp = tbl_gcollection.FK_timestamp LEFT JOIN tbl_games ON tbl_gcollection.FK_AppID = tbl_games.pk_appid WHERE  tbl_user.pk_steamid = '" +
+                    sid + "' OR tbl_user.username = '" + sid + "';");
 
             var count = 0;
             var list = new List<User> {new User()};

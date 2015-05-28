@@ -314,11 +314,12 @@ namespace Steam_Data_Collection
         {
             foreach (var user in tempList.List)
             {
-                
+
                 var dt =
                     Program.Select(
-                        "SELECT tbl_friends.PK_UserID, t.PK_UserID AS UserID2 FROM db_steamdata.tbl_friends INNER JOIN ( SELECT * FROM tbl_friends ) t ON tbl_friends.PK_FriendID = t.PK_FriendID WHERE tbl_friends.PK_UserID != t.PK_UserID AND tbl_friends.PK_UserID = '" +
-                        user.SteamId + "';");
+                        "SELECT  t.PK_UserID AS UserID2, tbl_friends.PK_UserID FROM db_steamdata.tbl_friends INNER JOIN ( SELECT * FROM tbl_friends WHERE PK_UserID = '" +
+                        user.SteamId +
+                        "') t ON tbl_friends.PK_FriendID = t.PK_FriendID WHERE tbl_friends.PK_UserID != t.PK_UserID;");
 
                 foreach (DataRow row in dt.Rows)
                 {
