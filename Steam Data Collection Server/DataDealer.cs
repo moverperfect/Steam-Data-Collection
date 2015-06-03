@@ -4,6 +4,7 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using Steam_Data_Collection_Client.Networking.Packets;
 
 namespace Steam_Data_Collection
@@ -23,7 +24,9 @@ namespace Steam_Data_Collection
         /// <summary>
         /// A list of the current ids being scanned on the friend
         /// </summary>
-        private static readonly List<CurrentScan> CurrFriendList = new List<CurrentScan>(); 
+        private static readonly List<CurrentScan> CurrFriendList = new List<CurrentScan>();
+
+        private static object _totalRequestsLock = new object();
 
         /// <summary>
         /// Tries to update all the things, returns a packet of the first thing to be updated
@@ -115,6 +118,8 @@ namespace Steam_Data_Collection
                 listOfIds.Add((UInt64) dt.Rows[i][0]);
             }
 
+            Monitor.Enter(_totalRequestsLock);
+
             if (mark)
             {
                 foreach (var t in CurrGameList.ToList())
@@ -138,6 +143,8 @@ namespace Steam_Data_Collection
                     CurrGameList.Add(new CurrentScan {HostId = hostId, SteamId = id, TimeOfScan = DateTime.Now});
                 }
             }
+
+            Monitor.Exit(_totalRequestsLock);
 
             return new ListOfId(listOfIds, 0, 2004);
         }
