@@ -314,32 +314,21 @@ namespace Steam_Data_Collection
         {
             foreach (var user in tempList.List)
             {
-
-                var dt =
-                    Program.Select(
-                        "SELECT  t.PK_UserID AS UserID2, tbl_friends.PK_UserID FROM db_steamdata.tbl_friends INNER JOIN ( SELECT * FROM tbl_friends WHERE PK_UserID = '" +
-                        user.SteamId +
-                        "') t ON tbl_friends.PK_FriendID = t.PK_FriendID WHERE tbl_friends.PK_UserID != t.PK_UserID;");
-
-                foreach (DataRow row in dt.Rows)
-                {
-                    for (var index = 0; index < user.ListOfFriends.Count; index++)
-                    {
-                        var friend = user.ListOfFriends[index];
-
-                        if (Convert.ToUInt64(row[1]) == friend.SteamId)
-                        {
-                            user.ListOfFriends.RemoveAt(index);
-                            break;
-                        }
-                    }
-                }
                 foreach (var friend in user.ListOfFriends)
                 {
-                    var insert = "INSERT INTO tbl_friends(PK_UserID) VALUES ('" + user.SteamId +
-                              "'); SET @friendid = LAST_INSERT_ID(); INSERT INTO tbl_friends VALUES (@friendid,'" +
-                              friend.SteamId + "');INSERT INTO tbl_frienddate VALUES (@friendid, '" + friend.TimeStamp.ToString("yyyy-MM-dd HH:mm:ss") +
-                              "'); INSERT IGNORE INTO tbl_user SET PK_SteamID = '" + friend.SteamId + "';";
+                    var user1 = user.SteamId;
+                    var user2 = friend.SteamId;
+
+                    if (user1 > user2)
+                    {
+                        var temp = user1;
+                        user1 = user2;
+                        user2 = temp;
+                    }
+
+                    var insert = "INSERT IGNORE INTO tbl_friend VALUES ('" + user1 + "','" + user2 + "','" +
+                                 friend.TimeStamp.ToString("yyyy-MM-dd HH:mm:ss") +
+                                 "'); INSERT IGNORE INTO tbl_user SET PK_SteamID = '" + friend.SteamId + "';";
                     Program.NonQuery(insert);
                 }
                 Program.NonQuery("UPDATE tbl_user SET LastFriendUpdate = '" + user.LastFriendUpdate.ToString("yyyy-MM-dd HH:mm:ss") + "' WHERE PK_SteamID = '" + user.SteamId + "';");

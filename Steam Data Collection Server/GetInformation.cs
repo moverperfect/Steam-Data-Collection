@@ -38,7 +38,7 @@ namespace Steam_Data_Collection
                 Program.Select(
                     "SELECT tbl_gcollection.pk_gamehistory, tbl_user.pk_steamid, username, customurl, visibilitystate, membersince, location, realname, lastlogoff, lastsummaryupdate, lastfriendupdate, lastgameupdate, timestamp, fk_appid, tbl_games.NAME, minsonrecord, minslast2weeks FROM tbl_user LEFT JOIN (SELECT tbl_gcollectionlink.pk_steamid, timestamp FROM tbl_gcollectionlink RIGHT JOIN tbl_user ON tbl_gcollectionlink.pk_steamid = tbl_user.pk_steamid WHERE  tbl_user.pk_steamid = '" +
                     sid + "' OR username = '" + sid +
-                    "' GROUP  BY timestamp ORDER  BY timestamp ASC) t ON tbl_user.pk_steamid = t.pk_steamid LEFT JOIN tbl_gcollection ON t.pk_steamid = tbl_gcollection.fk_steamid AND t.timestamp = tbl_gcollection.FK_timestamp LEFT JOIN tbl_games ON tbl_gcollection.FK_AppID = tbl_games.pk_appid WHERE  tbl_user.pk_steamid = '" +
+                    "' ORDER  BY timestamp DESC LIMIT 1) t ON tbl_user.pk_steamid = t.pk_steamid LEFT JOIN tbl_gcollection ON t.pk_steamid = tbl_gcollection.fk_steamid AND t.timestamp = tbl_gcollection.FK_timestamp LEFT JOIN tbl_games ON tbl_gcollection.FK_AppID = tbl_games.pk_appid WHERE  tbl_user.pk_steamid = '" +
                     sid + "' OR tbl_user.username = '" + sid + "';");
 
             var count = 0;
@@ -64,7 +64,10 @@ namespace Steam_Data_Collection
                     if (list[list.Count - 1].VisibilityState)
                     {
                         list[list.Count - 1].Location = (string) dt.Rows[count][6];
-                        list[list.Count - 1].RealName = (string) dt.Rows[count][7];
+                        if (dt.Rows[count][7].GetType() != typeof (DBNull))
+                        {
+                            list[list.Count - 1].RealName = (string) dt.Rows[count][7];
+                        }
                         list[list.Count - 1].MemberSince = (DateTime) dt.Rows[count][5];
                         list[list.Count - 1].LastGameUpdate = (DateTime) dt.Rows[count][11];
                         if (dt.Rows[count][10].GetType() != typeof (DBNull))
