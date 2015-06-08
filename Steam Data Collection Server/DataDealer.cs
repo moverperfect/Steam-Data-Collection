@@ -26,7 +26,15 @@ namespace Steam_Data_Collection
         /// </summary>
         private static readonly List<CurrentScan> CurrFriendList = new List<CurrentScan>();
 
+        /// <summary>
+        /// Object for holding the state of a thread to allow other threads to pass
+        /// </summary>
         private static object _totalRequestsLock = new object();
+
+        /// <summary>
+        /// Whether we are currently in the middle of updating 100 peoples games
+        /// </summary>
+        private static bool _updateGames;
 
         /// <summary>
         /// Tries to update all the things, returns a packet of the first thing to be updated
@@ -35,10 +43,24 @@ namespace Steam_Data_Collection
         /// <returns>Returns a byte array containing a list of id's/url information plus packet type</returns>
         public static byte[] UpdateAll(int hostId)
         {
-            var sum = UpdateSum(true, hostId);
-            if (sum.List.Count > 0)
+            var updategames = UpdateGames(false, hostId);
+
+            if (updategames.List.Count > 1000)
             {
-                return sum.Data;
+                _updateGames = true;
+            }
+            else if (updategames.List.Count == 0)
+            {
+                _updateGames = false;
+            }
+
+            if (!_updateGames)
+            {
+                var sum = UpdateSum(true, hostId);
+                if (sum.List.Count > 0)
+                {
+                    return sum.Data;
+                }
             }
 
             var game = UpdateGames(true, hostId);
@@ -46,10 +68,10 @@ namespace Steam_Data_Collection
             {
                 return game.Data;
             }
+          
+            //var friend = UpdateFriends(true, hostId);
 
-            var friend = UpdateFriends(true, hostId);
-
-            if (friend.List.Count > 0) return friend.Data;
+            //if (friend.List.Count > 0) return friend.Data;
 
             return new ListOfId(new List<ulong>(), 0, 2000).Data;
         }
@@ -108,9 +130,10 @@ namespace Steam_Data_Collection
         public static ListOfId UpdateGames(bool mark, int hostId)
         {
             var dt =
-                Program.Select("SELECT PK_SteamId FROM tbl_user WHERE (LastGameUpdate < NOW() - Interval " +
+                Program.Select("SELECT PK_SteamID FROM tbl_user WHERE ((LastGameUpdate < NOW() - Interval " +
                                Program.UpdateInterval +
-                               ") OR LastGameUpdate is Null AND VisibilityState = 1 ORDER BY LastGameUpdate;");
+                               " ) OR LastGameUpdate is Null) AND VisibilityState = 1 AND (LastSummaryUpdate >= (NOW() - Interval " +
+                               Program.UpdateInterval + ")) ORDER BY LastGameUpdate;");
             var listOfIds = new List<UInt64>();
 
             for (var i = 0; i < dt.Rows.Count; i++)
@@ -126,18 +149,16 @@ namespace Steam_Data_Collection
                 {
                     listOfIds.Remove(t.SteamId);
                 }
-            }
-            var l = 5;
 
-            if (listOfIds.Count < 5)
-            {
-                l = listOfIds.Count;
-            }
+                var l = 5;
 
-            listOfIds = listOfIds.GetRange(0, l);
+                if (listOfIds.Count < 5)
+                {
+                    l = listOfIds.Count;
+                }
 
-            if (mark)
-            {
+                listOfIds = listOfIds.GetRange(0, l);
+
                 foreach (var id in listOfIds)
                 {
                     CurrGameList.Add(new CurrentScan {HostId = hostId, SteamId = id, TimeOfScan = DateTime.Now});
