@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Xml;
 using Steam_Data_Collection_Client.Networking;
@@ -52,7 +53,7 @@ namespace Steam_Data_Collection_Client
                 Console.WriteLine("Server IP: " + Program.IpAddress + "      Port: " + Program.Port + "       HostId: " +
                                   Program.HostId);
                 var packet = CustomSocket.StartClient(new StdData("", Program.HostId, 2002).Data);
-
+                
                 switch (new StdData(packet).PacketType)
                 {
                     case 2003:
@@ -340,7 +341,7 @@ namespace Steam_Data_Collection_Client
             {
                 UpdateSteamToken();
             }
-
+            
             // If we have not been given any ids then get some from the server
             if (listOfIds == null)
             {

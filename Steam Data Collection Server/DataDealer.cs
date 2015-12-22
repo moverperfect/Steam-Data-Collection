@@ -62,13 +62,17 @@ namespace Steam_Data_Collection
                     return sum.Data;
                 }
             }
-
-            var game = UpdateGames(true, hostId);
-            if (game.List.Count > 0)
+            else
             {
-                return game.Data;
+
+                var game = UpdateGames(true, hostId);
+                if (game.List.Count > 0)
+                {
+                    return game.Data;
+                }
+                return UpdateAll(hostId);
             }
-          
+
             //var friend = UpdateFriends(true, hostId);
 
             //if (friend.List.Count > 0) return friend.Data;
