@@ -21,7 +21,7 @@ namespace Steam_Data_Collection
         /// <param name="db">The database name</param>
         public SqlConnecter(String db)
         {
-            Initialize(db, "localhost", "root", "");
+            Initialize(db, Program.ServerAddress, Program.Username, Program.Password);
         }
 
         /// <summary>

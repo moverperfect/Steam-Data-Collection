@@ -19,6 +19,21 @@ namespace Steam_Data_Collection
         public static String UpdateInterval;
 
         /// <summary>
+        /// Stores the sql server address
+        /// </summary>
+        public static String ServerAddress;
+
+        /// <summary>
+        /// Stores the username for the sql server
+        /// </summary>
+        public static String Username;
+
+        /// <summary>
+        /// Stores the password for the sql server
+        /// </summary>
+        public static String Password;
+
+        /// <summary>
         /// Main entry point into the program, gets the token and starts listening
         /// </summary>
         private static void Main(string[] args)
@@ -41,7 +56,16 @@ namespace Steam_Data_Collection
                 Console.WriteLine("Please enter the time interval you would like to update i.e 2 week");
                 UpdateInterval = Console.ReadLine();
 
-                File.WriteAllLines("settings.txt", new[] {SteamToken, UpdateInterval});
+                Console.WriteLine("Please enter the sql server address");
+                ServerAddress = Console.ReadLine();
+
+                Console.WriteLine("Please enter the sql server username");
+                Username = Console.ReadLine();
+                
+                Console.WriteLine("Please enter the sql server password");
+                Password = Console.ReadLine();
+                
+                File.WriteAllLines("settings.txt", new[] {SteamToken, UpdateInterval, ServerAddress, Username, Password});
                 return;
             }
 
@@ -49,6 +73,9 @@ namespace Steam_Data_Collection
 
             SteamToken = settings[0];
             UpdateInterval = settings[1];
+            ServerAddress = settings[2];
+            Username = settings[3];
+            Password = settings[4];
         }
 
         /// <summary>

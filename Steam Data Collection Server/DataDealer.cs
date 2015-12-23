@@ -249,7 +249,7 @@ namespace Steam_Data_Collection
         {
             foreach (var user in tempList.List)
             {
-                var update = "UPDATE tbl_User SET VisibilityState = " + ((user.VisibilityState) ? 1 : 0) +
+                var update = "UPDATE tbl_user SET VisibilityState = " + ((user.VisibilityState) ? 1 : 0) +
                              ", UserName = '" +
                              ChangeString(user.UserName).Replace("\\", "\\\\")
                                  .Replace("'", "\\\'")
@@ -301,11 +301,11 @@ namespace Steam_Data_Collection
         {
             foreach (var user in tempList.List)
             {
-                var updateUser = "UPDATE tbl_User SET LastGameUpdate = '" +
+                var updateUser = "UPDATE tbl_user SET LastGameUpdate = '" +
                                  user.LastGameUpdate.ToString("yyyy-MM-dd HH:mm:ss") + "' WHERE PK_SteamId = " +
                                  user.SteamId +
                                  ";";
-                var insertLink = "INSERT INTO tbl_GCollectionLink VALUES (" + user.SteamId + ", '" +
+                var insertLink = "INSERT INTO tbl_gcollectionlink VALUES (" + user.SteamId + ", '" +
                                  user.LastGameUpdate.ToString("yyyy-MM-dd HH:mm:ss") + "');";
                 var insertGCollection =
                     user.ListOfGames.Aggregate(

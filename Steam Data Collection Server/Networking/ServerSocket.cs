@@ -34,6 +34,7 @@ namespace Steam_Data_Collection.Networking
             // Bind the socket to the local endpoint and listen for incoming connections.
             try
             {
+                Console.WriteLine("Listening on port 8220");
                 listener.Bind(new IPEndPoint(IPAddress.Any, 8220));
                 listener.Listen(500);
 
