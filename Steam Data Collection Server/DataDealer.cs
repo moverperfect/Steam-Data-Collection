@@ -341,6 +341,11 @@ namespace Steam_Data_Collection
                         break;
                     }
                 }
+
+                if (_sumNeedScan.Contains(user.SteamId))
+                {
+                    _sumNeedScan.Remove(user.SteamId);
+                }
             }
         }
 
