@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -24,9 +22,16 @@ namespace Steam_Data_Collection
         /// <summary>
         /// A list of all of the games that need to be scanned
         /// </summary>
-        private static List<UInt64> _gamesNeedScan = new List<ulong>();
+        private static List<ulong> _gamesNeedScan = new List<ulong>();
 
+        private static List<ulong> _sumNeedScan = new List<ulong>();
+
+        /// <summary>
+        /// Last time the game ids were updated
+        /// </summary>
         private static DateTime _gameLastUpdate;
+
+        private static DateTime _sumLastUpdate;
 
         /// <summary>
         /// A list of the current ids being scanned on the friend
@@ -36,10 +41,12 @@ namespace Steam_Data_Collection
         /// <summary>
         /// Object for holding the state of a thread to allow other threads to pass
         /// </summary>
-        private static object _totalRequestsLock = new object();
+        private static readonly object GameUpdateLock = new object();
+
+        private static readonly object SumUpdateLock = new object();
 
         /// <summary>
-        /// Whether we are currently in the middle of updating 100 peoples games
+        /// Whether we are currently in the middle of updating 1000 peoples games
         /// </summary>
         private static bool _updateGames;
 
@@ -50,8 +57,10 @@ namespace Steam_Data_Collection
         /// <returns>Returns a byte array containing a list of id's/url information plus packet type</returns>
         public static byte[] UpdateAll(int hostId)
         {
+            // Get all of the ids that need their games updated
             var updategames = UpdateGames(false, hostId);
 
+            // If there more than 1000 people to update then update, else false
             if (updategames.List.Count > 1000)
             {
                 _updateGames = true;
@@ -61,8 +70,10 @@ namespace Steam_Data_Collection
                 _updateGames = false;
             }
 
+            // If we are not updating games then check summary
             if (!_updateGames)
             {
+                // Check sum and check if we need to update these
                 var sum = UpdateSum(true, hostId);
                 if (sum.List.Count > 0)
                 {
@@ -71,13 +82,11 @@ namespace Steam_Data_Collection
             }
             else
             {
-
+                // Else update peoples games and mark the ones we are doing
                 var game = UpdateGames(true, hostId);
-                if (game.List.Count > 0)
-                {
-                    return game.Data;
-                }
-                return UpdateAll(hostId);
+                return game.List.Count > 0 ? game.Data : UpdateAll(hostId);
+
+                // If we failed at updating games then call this function again
             }
 
             //var friend = UpdateFriends(true, hostId);
@@ -92,43 +101,59 @@ namespace Steam_Data_Collection
         /// </summary>
         public static ListOfId UpdateSum(bool mark, int hostId)
         {
-            var dt =
-                Program.Select("SELECT PK_SteamId FROM tbl_user WHERE LastSummaryUpdate < NOW() - Interval " +
-                               Program.UpdateInterval +
-                               "  OR LastSummaryUpdate is Null ORDER BY LastSummaryUpdate;");
-            var listOfIds = new List<UInt64>();
+            Monitor.Enter(SumUpdateLock);
 
-            for (var i = 0; i < dt.Rows.Count; i++)
+            if (_sumNeedScan.Count == 0 || _sumLastUpdate < DateTime.Now.AddSeconds(-60))
             {
-                listOfIds.Add((UInt64) dt.Rows[i][0]);
+                var dt =
+                    Program.Select("SELECT PK_SteamId FROM tbl_user WHERE LastSummaryUpdate < NOW() - Interval " +
+                                   Program.UpdateInterval +
+                                   "  OR LastSummaryUpdate is Null ORDER BY LastSummaryUpdate;");
+                _sumNeedScan = new List<ulong>();
+
+                for (var i = 0; i < dt.Rows.Count; i++)
+                {
+                    _sumNeedScan.Add((ulong) dt.Rows[i][0]);
+                }
+
+                _sumLastUpdate = DateTime.Now;
             }
 
-            if (mark)
+            if (!mark)
             {
-                foreach (var t in CurrSumList)
+                return new ListOfId(_sumNeedScan, 0, 2003);
+            }
+
+            var listOfIds = new List<ulong>();
+
+            foreach (var t in _sumNeedScan)
+            {
+                var scanned = CurrSumList.Any(currentScan => currentScan.SteamId == t);
+                if (!scanned)
                 {
-                    listOfIds.Remove(t.SteamId);
+                    listOfIds.Add(t);
+                }
+                if (listOfIds.Count == 100)
+                {
+                    break;
                 }
             }
 
-            var l = 100;
-
-            if (listOfIds.Count < 100)
+            // If we are marking these then remove all of ids currently being searched
+            foreach (var t in CurrSumList)
             {
-                l = listOfIds.Count;
+                listOfIds.Remove(t.SteamId);
             }
 
-            listOfIds = listOfIds.GetRange(0, l);
-
-            if (mark)
+            // Mark all of the ids being searched as being searched
+            foreach (var id in listOfIds)
             {
-                foreach (var id in listOfIds)
-                {
-                    CurrSumList.Add(new CurrentScan {HostId = hostId, SteamId = id, TimeOfScan = DateTime.Now});
-                }
+                CurrSumList.Add(new CurrentScan {HostId = hostId, SteamId = id, TimeOfScan = DateTime.Now});
             }
 
+            Monitor.Exit(SumUpdateLock);
 
+            // Return the list
             return new ListOfId(listOfIds, 0, 2003);
         }
 
@@ -140,8 +165,9 @@ namespace Steam_Data_Collection
         /// <returns>A list of the ids to be searched through</returns>
         public static ListOfId UpdateGames(bool mark, int hostId)
         {
-            Monitor.Enter(_totalRequestsLock);
+            Monitor.Enter(GameUpdateLock);
 
+            // If we need to scan again then do so
             if (_gamesNeedScan.Count == 0 || _gameLastUpdate < DateTime.Now.AddSeconds(-30))
             {
                 FindGames();
@@ -172,11 +198,14 @@ namespace Steam_Data_Collection
                 }
             }
 
-            Monitor.Exit(_totalRequestsLock);
+            Monitor.Exit(GameUpdateLock);
 
             return new ListOfId(listOfIds, 0, 2004);
         }
 
+        /// <summary>
+        /// Grab all of the games from the server
+        /// </summary>
         private static void FindGames()
         {
             var dt =
@@ -184,11 +213,11 @@ namespace Steam_Data_Collection
                                Program.UpdateInterval +
                                " ) OR LastGameUpdate is Null) AND VisibilityState = 1 AND (LastSummaryUpdate >= (NOW() - Interval " +
                                Program.UpdateInterval + ")) ORDER BY LastGameUpdate;");
-            var listOfIds = new List<UInt64>();
+            var listOfIds = new List<ulong>();
 
             for (var i = 0; i < dt.Rows.Count; i++)
             {
-                listOfIds.Add((UInt64) dt.Rows[i][0]);
+                listOfIds.Add((ulong) dt.Rows[i][0]);
             }
 
             _gamesNeedScan = listOfIds;
@@ -208,11 +237,11 @@ namespace Steam_Data_Collection
                 Program.Select("SELECT PK_SteamId FROM tbl_user WHERE (LastFriendUpdate < NOW() - Interval " +
                                Program.UpdateInterval +
                                ") OR LastFriendUpdate is Null AND VisibilityState = 1 ORDER BY LastFriendUpdate;");
-            var listOfIds = new List<UInt64>();
+            var listOfIds = new List<ulong>();
 
             for (var i = 0; i < dt.Rows.Count; i++)
             {
-                listOfIds.Add((UInt64)dt.Rows[i][0]);
+                listOfIds.Add((ulong) dt.Rows[i][0]);
             }
 
             if (mark)
@@ -235,7 +264,7 @@ namespace Steam_Data_Collection
             {
                 foreach (var id in listOfIds)
                 {
-                    CurrFriendList.Add(new CurrentScan { HostId = hostId, SteamId = id, TimeOfScan = DateTime.Now });
+                    CurrFriendList.Add(new CurrentScan {HostId = hostId, SteamId = id, TimeOfScan = DateTime.Now});
                 }
             }
 
@@ -253,11 +282,11 @@ namespace Steam_Data_Collection
                 Program.Select(
                     "SELECT PK_SteamID FROM tbl_user RIGHT JOIN tbl_gcollection ON tbl_user.PK_SteamID = tbl_gcollection.FK_SteamID LEFT JOIN tbl_games ON tbl_gcollection.FK_AppID = tbl_games.PK_AppID WHERE PK_AppID is null GROUP BY FK_AppID LIMIT 1;");
 
-            var listOfIds = new List<UInt64>();
+            var listOfIds = new List<ulong>();
 
             for (var i = 0; i < dt.Rows.Count; i++)
             {
-                listOfIds.Add((UInt64)dt.Rows[i][0]);
+                listOfIds.Add((ulong) dt.Rows[i][0]);
             }
 
             return new ListOfId(listOfIds, 0, 2007);
@@ -385,19 +414,26 @@ namespace Steam_Data_Collection
                                  "'); INSERT IGNORE INTO tbl_user SET PK_SteamID = '" + friend.SteamId + "';";
                     Program.NonQuery(insert);
                 }
-                Program.NonQuery("UPDATE tbl_user SET LastFriendUpdate = '" + user.LastFriendUpdate.ToString("yyyy-MM-dd HH:mm:ss") + "' WHERE PK_SteamID = '" + user.SteamId + "';");
+                Program.NonQuery("UPDATE tbl_user SET LastFriendUpdate = '" +
+                                 user.LastFriendUpdate.ToString("yyyy-MM-dd HH:mm:ss") + "' WHERE PK_SteamID = '" +
+                                 user.SteamId + "';");
             }
         }
 
+        /// <summary>
+        /// Deal with all of the given game names that are taken in
+        /// </summary>
+        /// <param name="tempList"></param>
         public static void DealWithGameNames(ListOfGames tempList)
         {
             var update = "";
             foreach (var gameHistory in tempList.List)
             {
-                update += "INSERT IGNORE INTO tbl_games VALUES ('" + gameHistory.AppId + "','" + ChangeString(gameHistory.Name).Replace("\\", "\\\\")
-                    .Replace("'", "\\\'")
-                    .Replace("＇", "\\＇")
-                    .Replace("＼", "\\＼").Replace("ˈ", "\\ˈ").Replace("ˈ", "\\ˈ") + "');";
+                update += "INSERT IGNORE INTO tbl_games VALUES ('" + gameHistory.AppId + "','" +
+                          ChangeString(gameHistory.Name).Replace("\\", "\\\\")
+                              .Replace("'", "\\\'")
+                              .Replace("＇", "\\＇")
+                              .Replace("＼", "\\＼").Replace("ˈ", "\\ˈ").Replace("ˈ", "\\ˈ") + "');";
             }
             Program.NonQuery(update);
         }
@@ -407,7 +443,7 @@ namespace Steam_Data_Collection
         /// </summary>
         /// <param name="msg">The string to be changed</param>
         /// <returns>A latin1 parsed string</returns>
-        public static String ChangeString(String msg)
+        private static string ChangeString(string msg)
         {
             var iso = Encoding.GetEncoding("ISO-8859-1");
             var utf8 = Encoding.UTF8;
@@ -424,7 +460,7 @@ namespace Steam_Data_Collection
             /// <summary>
             /// The Id of the user we are scanning
             /// </summary>
-            public UInt64 SteamId { get; set; }
+            public ulong SteamId { get; set; }
 
             /// <summary>
             /// The time that we start the scan
