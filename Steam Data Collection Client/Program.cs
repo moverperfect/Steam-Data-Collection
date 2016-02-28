@@ -87,6 +87,7 @@ namespace Steam_Data_Collection_Client
                 Console.WriteLine("4. Exit");
 
                 var option = args.Count < 2 ? Console.ReadLine() : args[1];
+                args = new List<string>();
 
                 switch (option)
                 {

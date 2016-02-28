@@ -127,74 +127,82 @@ namespace Steam_Data_Collection_Client
 
             Console.WriteLine("Getting the information from steam");
 
-            var s = new XmlReaderSettings {DtdProcessing = DtdProcessing.Ignore};
-            var r = XmlReader.Create(uri, s);
             var people = new List<User>();
-            while (r.Read())
+            try
             {
-                switch (r.NodeType)
+                var s = new XmlReaderSettings {DtdProcessing = DtdProcessing.Ignore};
+                var r = XmlReader.Create(uri, s);
+                while (r.Read())
                 {
-                    case XmlNodeType.Element:
-                        switch (r.Name)
-                        {
-                            case "player":
-                                r.Read();
-                                people.Add(new User());
-                                people[people.Count - 1].LastSummaryUpdate = DateTime.Now;
-                                break;
+                    switch (r.NodeType)
+                    {
+                        case XmlNodeType.Element:
+                            switch (r.Name)
+                            {
+                                case "player":
+                                    r.Read();
+                                    people.Add(new User());
+                                    people[people.Count - 1].LastSummaryUpdate = DateTime.Now;
+                                    break;
 
-                            case "steamid":
-                                r.Read();
-                                people[people.Count - 1].SteamId = UInt64.Parse(r.Value);
-                                break;
+                                case "steamid":
+                                    r.Read();
+                                    people[people.Count - 1].SteamId = UInt64.Parse(r.Value);
+                                    break;
 
-                            case "communityvisibilitystate":
-                                r.Read();
-                                var v = r.Value == "3";
-                                people[people.Count - 1].VisibilityState = v;
-                                break;
+                                case "communityvisibilitystate":
+                                    r.Read();
+                                    var v = r.Value == "3";
+                                    people[people.Count - 1].VisibilityState = v;
+                                    break;
 
-                            case "personaname":
-                                r.Read();
-                                people[people.Count - 1].UserName = r.Value;
-                                break;
+                                case "personaname":
+                                    r.Read();
+                                    people[people.Count - 1].UserName = r.Value;
+                                    break;
 
-                            case "lastlogoff":
-                                r.Read();
-                                people[people.Count - 1].LastLogOff =
-                                    new DateTime(1970, 1, 1).AddSeconds(double.Parse(r.Value));
-                                break;
+                                case "lastlogoff":
+                                    r.Read();
+                                    people[people.Count - 1].LastLogOff =
+                                        new DateTime(1970, 1, 1).AddSeconds(double.Parse(r.Value));
+                                    break;
 
-                            case "profileurl":
-                                r.Read();
-                                people[people.Count - 1].CustomUrl = r.Value.Split('/')[3] == "id"
-                                    ? r.Value.Split('/')[4]
-                                    : "/";
-                                break;
+                                case "profileurl":
+                                    r.Read();
+                                    people[people.Count - 1].CustomUrl = r.Value.Split('/')[3] == "id"
+                                        ? r.Value.Split('/')[4]
+                                        : "/";
+                                    break;
 
-                            case "realname":
-                                r.Read();
-                                people[people.Count - 1].RealName = r.Value;
-                                break;
+                                case "realname":
+                                    r.Read();
+                                    people[people.Count - 1].RealName = r.Value;
+                                    break;
 
-                            case "primaryclanid":
-                                r.Read();
-                                people[people.Count - 1].PrimaryClanId = UInt64.Parse(r.Value);
-                                break;
+                                case "primaryclanid":
+                                    r.Read();
+                                    people[people.Count - 1].PrimaryClanId = UInt64.Parse(r.Value);
+                                    break;
 
-                            case "timecreated":
-                                r.Read();
-                                people[people.Count - 1].MemberSince =
-                                    new DateTime(1970, 1, 1).AddSeconds(double.Parse(r.Value));
-                                break;
+                                case "timecreated":
+                                    r.Read();
+                                    people[people.Count - 1].MemberSince =
+                                        new DateTime(1970, 1, 1).AddSeconds(double.Parse(r.Value));
+                                    break;
 
-                            case "loccountrycode":
-                                r.Read();
-                                people[people.Count - 1].Location = r.Value;
-                                break;
-                        }
-                        break;
+                                case "loccountrycode":
+                                    r.Read();
+                                    people[people.Count - 1].Location = r.Value;
+                                    break;
+                            }
+                            break;
+                    }
                 }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                people.RemoveAt(people.Count - 1);
             }
 
             Console.WriteLine("Sending the information back to the server");

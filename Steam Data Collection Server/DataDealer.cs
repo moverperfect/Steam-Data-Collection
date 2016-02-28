@@ -22,6 +22,13 @@ namespace Steam_Data_Collection
         private static readonly List<CurrentScan> CurrGameList = new List<CurrentScan>();
 
         /// <summary>
+        /// A list of all of the games that need to be scanned
+        /// </summary>
+        private static List<UInt64> _gamesNeedScan = new List<ulong>();
+
+        private static DateTime _gameLastUpdate;
+
+        /// <summary>
         /// A list of the current ids being scanned on the friend
         /// </summary>
         private static readonly List<CurrentScan> CurrFriendList = new List<CurrentScan>();
@@ -133,19 +140,14 @@ namespace Steam_Data_Collection
         /// <returns>A list of the ids to be searched through</returns>
         public static ListOfId UpdateGames(bool mark, int hostId)
         {
-            var dt =
-                Program.Select("SELECT PK_SteamID FROM tbl_user WHERE ((LastGameUpdate < NOW() - Interval " +
-                               Program.UpdateInterval +
-                               " ) OR LastGameUpdate is Null) AND VisibilityState = 1 AND (LastSummaryUpdate >= (NOW() - Interval " +
-                               Program.UpdateInterval + ")) ORDER BY LastGameUpdate;");
-            var listOfIds = new List<UInt64>();
+            Monitor.Enter(_totalRequestsLock);
 
-            for (var i = 0; i < dt.Rows.Count; i++)
+            if (_gamesNeedScan.Count == 0 || _gameLastUpdate < DateTime.Now.AddSeconds(-30))
             {
-                listOfIds.Add((UInt64) dt.Rows[i][0]);
+                FindGames();
             }
 
-            Monitor.Enter(_totalRequestsLock);
+            var listOfIds = _gamesNeedScan;
 
             if (mark)
             {
@@ -166,12 +168,32 @@ namespace Steam_Data_Collection
                 foreach (var id in listOfIds)
                 {
                     CurrGameList.Add(new CurrentScan {HostId = hostId, SteamId = id, TimeOfScan = DateTime.Now});
+                    _gamesNeedScan.Remove(id);
                 }
             }
 
             Monitor.Exit(_totalRequestsLock);
 
             return new ListOfId(listOfIds, 0, 2004);
+        }
+
+        private static void FindGames()
+        {
+            var dt =
+                Program.Select("SELECT PK_SteamID FROM tbl_user WHERE ((LastGameUpdate < NOW() - Interval " +
+                               Program.UpdateInterval +
+                               " ) OR LastGameUpdate is Null) AND VisibilityState = 1 AND (LastSummaryUpdate >= (NOW() - Interval " +
+                               Program.UpdateInterval + ")) ORDER BY LastGameUpdate;");
+            var listOfIds = new List<UInt64>();
+
+            for (var i = 0; i < dt.Rows.Count; i++)
+            {
+                listOfIds.Add((UInt64) dt.Rows[i][0]);
+            }
+
+            _gamesNeedScan = listOfIds;
+
+            _gameLastUpdate = DateTime.Now;
         }
 
         /// <summary>
