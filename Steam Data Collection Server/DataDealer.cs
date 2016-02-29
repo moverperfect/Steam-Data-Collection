@@ -331,6 +331,8 @@ namespace Steam_Data_Collection
                 Program.NonQuery(update);
             }
 
+            Monitor.Enter(SumUpdateLock);
+
             foreach (var user in tempList.List)
             {
                 for (var i = 0; i < CurrSumList.Count; i++)
@@ -347,6 +349,8 @@ namespace Steam_Data_Collection
                     _sumNeedScan.Remove(user.SteamId);
                 }
             }
+
+            Monitor.Exit(SumUpdateLock);
         }
 
         /// <summary>
@@ -381,6 +385,8 @@ namespace Steam_Data_Collection
                 Program.NonQuery(updateUser + insertLink + insertGCollection);
             }
 
+            Monitor.Enter(GameUpdateLock);
+
             foreach (var user in tempList.List)
             {
                 for (var i = 0; i < CurrGameList.Count; i++)
@@ -391,7 +397,13 @@ namespace Steam_Data_Collection
                         break;
                     }
                 }
+                if (_gamesNeedScan.Contains(user.SteamId))
+                {
+                    _gamesNeedScan.Remove(user.SteamId);
+                }
             }
+
+            Monitor.Exit(GameUpdateLock);
         }
 
         /// <summary>
